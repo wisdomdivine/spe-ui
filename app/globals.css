@@ -34,6 +34,21 @@
   border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
+/* ── Hide scrollbars everywhere without disabling scrolling ── */
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+*::-webkit-scrollbar,
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
+  background: transparent !important;
+}
+
 html, body {
   overflow-x: hidden;
   width: 100%;
