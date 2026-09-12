@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import GlitterConfetti from "@/components/GlitterConfetti";
 import ConfettiSpaceBackground from "@/components/ConfettiSpaceBackground";
 import Link from "next/link";
+import { IconArrowRight } from "@tabler/icons-react";
 
 export default function EventRegisterPage() {
   const [formData, setFormData] = useState({
@@ -435,7 +436,7 @@ export default function EventRegisterPage() {
                 key="success-card"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className={`rounded-[2.5rem] border p-10 sm:p-16 text-center transition-all duration-1000 ${
+                className={`rounded-[2.5rem] border p-8 sm:p-14 text-center transition-all duration-1000 ${
                   isDarkMode
                     ? "border-neutral-800 bg-[#121212]"
                     : "border-gray-100 bg-[#F9FAFB]"
@@ -446,29 +447,60 @@ export default function EventRegisterPage() {
                 </h2>
                 <p className="text-base text-gray-400 mb-8 max-w-md mx-auto font-medium">
                   {formData.is_spe_member
-                    ? "Thank you for registering for Industry Week 2026. See you at the event!"
+                    ? "Thank you for registering for Industry Week 2026. See you at the event."
                     : "You have been added to the Industry Week priority waitlist. We will notify you on WhatsApp."}
                 </p>
 
                 {/* Access Code Box */}
                 {generatedAccessCode && (
-                  <div className="mb-10 p-6 rounded-[2rem] bg-neutral-900 border border-neutral-800 max-w-sm mx-auto">
+                  <div className="mb-8 p-6 rounded-2xl bg-neutral-900 border border-neutral-800 max-w-sm mx-auto">
                     <p className="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-1">YOUR ACCESS CODE</p>
                     <p className="text-3xl font-black tracking-widest text-white font-mono uppercase">{generatedAccessCode}</p>
-                    <p className="text-[10px] text-gray-500 font-bold mt-2">Write this down or save it for entry verification</p>
+                    <p className="text-[10px] text-gray-500 font-bold mt-2">Save this code for entry verification</p>
                   </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                {/* Sticky Wall Community Callout */}
+                <div className="mb-8 p-6 sm:p-8 rounded-2xl bg-neutral-900/60 border border-neutral-800 max-w-lg mx-auto text-left">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">Community Board</span>
+                    <span className="text-[10px] font-bold text-gray-500">Interactive</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2">
+                    Leave a note on the Sticky Wall
+                  </h3>
+                  <p className="text-sm text-gray-400 leading-relaxed mb-6">
+                    Connect with other attendees before the event. Drop a shoutout, introduce yourself, or share what you hope to learn.
+                  </p>
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <Link
+                      href="/programs/resources/sticky-wall"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-xs font-bold text-white transition-colors hover:bg-blue-700"
+                    >
+                      Open Sticky Wall
+                      <IconArrowRight size={14} />
+                    </Link>
+                    <Link
+                      href="/programs/resources"
+                      className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl border border-neutral-700 bg-neutral-800 px-5 py-3 text-xs font-bold text-gray-300 transition-colors hover:bg-neutral-700 hover:text-white"
+                    >
+                      View All Resources
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Secondary Action Links */}
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 border-t border-neutral-800/60">
                   <Link
                     href="/events"
-                    className="w-full sm:w-auto rounded-2xl bg-blue-600 px-8 py-4 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-blue-700"
+                    className="w-full sm:w-auto rounded-xl px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-400 transition-colors hover:text-white"
                   >
                     View All Events
                   </Link>
+                  <span className="hidden sm:inline-block text-neutral-700">•</span>
                   <Link
                     href="/"
-                    className="w-full sm:w-auto rounded-2xl bg-neutral-800 px-8 py-4 text-xs font-bold uppercase tracking-widest text-gray-200 transition-all hover:bg-neutral-700"
+                    className="w-full sm:w-auto rounded-xl px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-400 transition-colors hover:text-white"
                   >
                     Back to Home
                   </Link>
