@@ -3,16 +3,16 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Trophy,
-  RotateCcw,
-  Crown,
-  ChevronRight,
-  User,
-  Flag,
-  ArrowLeft,
-  Loader2,
-  Layers,
-} from "lucide-react";
+  IconTrophy,
+  IconRotate2,
+  IconCrown,
+  IconChevronRight,
+  IconUser,
+  IconFlag,
+  IconArrowLeft,
+  IconLoader2,
+  IconLayersIntersect,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -68,7 +68,7 @@ function Leaderboard({
   return (
     <div className="bg-white rounded-[2rem] border border-gray-100 p-6 sm:p-8">
       <div className="flex items-center gap-2 mb-6">
-        <Trophy size={16} className="text-amber-500" />
+        <IconTrophy size={16} className="text-amber-500" />
         <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Top Stackers</h3>
       </div>
       {loading ? (
@@ -91,7 +91,7 @@ function Leaderboard({
                     i === 0 ? "text-amber-500" : i === 1 ? "text-gray-400" : i === 2 ? "text-amber-700" : "text-gray-300"
                   }`}
                 >
-                  {i === 0 ? <Crown size={14} className="mx-auto" /> : i + 1}
+                  {i === 0 ? <IconCrown size={14} className="mx-auto" /> : i + 1}
                 </span>
                 <span className={`text-sm font-bold flex-grow ${isMe ? "text-blue-600" : "text-gray-700"}`}>
                   {entry.player_name}
@@ -480,7 +480,7 @@ export default function BarrelStackerPage() {
             href="/programs/resources"
             className="inline-flex items-center gap-1.5 text-xs font-black text-gray-300 uppercase tracking-widest hover:text-blue-600 transition-colors mb-8"
           >
-            <ArrowLeft size={14} /> Resources
+            <IconArrowLeft size={14} /> Resources
           </Link>
 
           <div className="flex flex-col lg:flex-row gap-8">
@@ -494,7 +494,7 @@ export default function BarrelStackerPage() {
                 {/* Title */}
                 <div className="flex items-center gap-3 mb-6">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-                    <Layers size={20} className="text-blue-600" />
+                    <IconLayersIntersect size={20} className="text-blue-600" />
                   </div>
                   <div>
                     <h1 className="text-xl font-black text-gray-900">Barrel Stacker</h1>
@@ -514,7 +514,7 @@ export default function BarrelStackerPage() {
                     >
                       <div className="mb-6">
                         <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-blue-50 mb-4">
-                          <Layers size={36} className="text-blue-600" />
+                          <IconLayersIntersect size={36} className="text-blue-600" />
                         </div>
                         <h2 className="text-2xl font-black text-gray-900 mb-2">
                           Stack the Barrels
@@ -547,7 +547,7 @@ export default function BarrelStackerPage() {
                         className="px-10 py-4 bg-blue-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-lg shadow-blue-200 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-300 active:scale-95 transition-all"
                       >
                         <span className="flex items-center gap-2">
-                          Start Stacking <ChevronRight size={16} />
+                          Start Stacking <IconChevronRight size={16} />
                         </span>
                       </button>
                     </motion.div>
@@ -563,7 +563,7 @@ export default function BarrelStackerPage() {
                       className="text-center py-10"
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 mb-4">
-                        <User size={28} className="text-blue-600" />
+                        <IconUser size={28} className="text-blue-600" />
                       </div>
                       <h3 className="text-xl font-black text-gray-900 mb-2">What's Your Name?</h3>
                       <p className="text-sm font-medium text-gray-400 mb-6">
@@ -613,7 +613,7 @@ export default function BarrelStackerPage() {
                           onClick={handleQuit}
                           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black text-gray-300 uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all"
                         >
-                          <Flag size={12} /> Quit
+                          <IconFlag size={12} /> Quit
                         </button>
                       </div>
 
@@ -650,7 +650,7 @@ export default function BarrelStackerPage() {
                       className="text-center py-8"
                     >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-blue-50 mb-4">
-                        <Layers size={36} className="text-blue-600" />
+                        <IconLayersIntersect size={36} className="text-blue-600" />
                       </div>
 
                       <div className="mb-2">
@@ -675,7 +675,7 @@ export default function BarrelStackerPage() {
 
                       {submitting && (
                         <div className="flex items-center justify-center gap-2 mb-4">
-                          <Loader2 size={14} className="animate-spin text-blue-600" />
+                          <IconLoader2 size={14} className="animate-spin text-blue-600" />
                           <span className="text-xs font-bold text-gray-400">Saving score...</span>
                         </div>
                       )}
@@ -686,7 +686,7 @@ export default function BarrelStackerPage() {
                           className="px-8 py-4 bg-blue-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all"
                         >
                           <span className="flex items-center gap-2 justify-center">
-                            <RotateCcw size={16} /> Play Again
+                            <IconRotate2 size={16} /> Play Again
                           </span>
                         </button>
                         <button

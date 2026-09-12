@@ -3,21 +3,21 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Smile,
-  Trophy,
-  RotateCcw,
-  Crown,
-  Timer,
-  Lightbulb,
-  Check,
-  X,
-  ChevronRight,
-  User,
-  Sparkles,
-  Flag,
-  ArrowLeft,
-  Loader2,
-} from "lucide-react";
+  IconMoodSmile,
+  IconTrophy,
+  IconRotate2,
+  IconCrown,
+  IconClock,
+  IconBulb,
+  IconCheck,
+  IconX,
+  IconChevronRight,
+  IconUser,
+  IconSparkles,
+  IconFlag,
+  IconArrowLeft,
+  IconLoader2,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -100,7 +100,7 @@ function Leaderboard({
   return (
     <div className="bg-white rounded-[2rem] border border-gray-100 p-6 sm:p-8">
       <div className="flex items-center gap-2 mb-6">
-        <Trophy size={16} className="text-amber-500" />
+        <IconTrophy size={16} className="text-amber-500" />
         <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Top Decoders</h3>
       </div>
       {loading ? (
@@ -123,7 +123,7 @@ function Leaderboard({
                     i === 0 ? "text-amber-500" : i === 1 ? "text-gray-400" : i === 2 ? "text-amber-700" : "text-gray-300"
                   }`}
                 >
-                  {i === 0 ? <Crown size={14} className="mx-auto" /> : i + 1}
+                  {i === 0 ? <IconCrown size={14} className="mx-auto" /> : i + 1}
                 </span>
                 <span className={`text-sm font-bold flex-grow ${isMe ? "text-blue-600" : "text-gray-700"}`}>
                   {entry.player_name}
@@ -370,12 +370,12 @@ export default function EmojiDecodePage() {
               href="/programs/resources"
               className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-blue-600 transition-colors mb-4"
             >
-              <ArrowLeft size={14} />
-              Back to Resources
+              <IconArrowLeft size={14} />
+              All Resources
             </Link>
-            <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-600 text-white">
-                <Smile size={20} />
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-600 text-white shadow-lg shadow-violet-200">
+                <IconMoodSmile size={20} />
               </div>
               <p className="text-[11px] font-black text-violet-600 uppercase tracking-widest">Emoji Decode</p>
             </div>
@@ -412,7 +412,7 @@ export default function EmojiDecodePage() {
                     className="bg-white rounded-[2rem] sm:rounded-[3rem] border border-gray-100 p-8 sm:p-12 text-center"
                   >
                     <div className="w-20 h-20 rounded-3xl bg-gray-50 flex items-center justify-center mx-auto mb-6">
-                      <Smile size={36} className="text-gray-300" />
+                      <IconMoodSmile size={36} className="text-gray-300" />
                     </div>
                     <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-3">Guess What the Emojis Mean</h2>
                     <p className="text-sm font-medium text-gray-400 mb-3 max-w-md mx-auto">
@@ -442,7 +442,7 @@ export default function EmojiDecodePage() {
                     className="bg-white rounded-[2rem] sm:rounded-[3rem] border border-gray-100 p-8 sm:p-12 text-center"
                   >
                     <div className="w-16 h-16 rounded-2xl bg-violet-50 flex items-center justify-center mx-auto mb-6">
-                      <User size={28} className="text-violet-600" />
+                      <IconUser size={28} className="text-violet-600" />
                     </div>
                     <h2 className="text-xl sm:text-2xl font-black text-gray-900 mb-2">What Should We Call You?</h2>
                     <p className="text-sm font-medium text-gray-400 mb-6">This name will appear on the leaderboard.</p>
@@ -485,7 +485,7 @@ export default function EmojiDecodePage() {
                           className="absolute inset-0 bg-emerald-500/10 flex items-center justify-center z-10 rounded-[2rem] sm:rounded-[3rem]"
                         >
                           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-emerald-500 flex items-center justify-center">
-                            <Check size={32} className="text-white" />
+                            <IconCheck size={32} className="text-white" />
                           </motion.div>
                         </motion.div>
                       )}
@@ -497,7 +497,7 @@ export default function EmojiDecodePage() {
                           className="absolute inset-0 bg-rose-500/10 flex items-center justify-center z-10 rounded-[2rem] sm:rounded-[3rem]"
                         >
                           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-rose-500 flex items-center justify-center">
-                            <X size={32} className="text-white" />
+                            <IconX size={32} className="text-white" />
                           </motion.div>
                         </motion.div>
                       )}
@@ -508,18 +508,16 @@ export default function EmojiDecodePage() {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-1.5">
-                            <Timer size={14} className={`${timeLeft <= 10 ? "text-rose-500" : "text-gray-400"}`} />
-                            <span className={`text-sm font-black ${timeLeft <= 10 ? "text-rose-500" : "text-gray-700"}`}>{timeLeft}s</span>
+                            <IconClock size={14} className={`${timeLeft <= 10 ? "text-rose-500" : "text-gray-400"}`} />
+                            <span className={`text-xs font-black font-mono ${timeLeft <= 10 ? "text-rose-500 animate-pulse" : "text-gray-500"}`}>
+                              {timeLeft}s
+                            </span>
                           </div>
                           {streak >= 2 && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-50 border border-amber-100"
-                            >
-                              <Sparkles size={12} className="text-amber-500" />
+                            <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-100">
+                              <IconSparkles size={12} className="text-amber-500" />
                               <span className="text-[10px] font-black text-amber-600">{streak}x STREAK</span>
-                            </motion.div>
+                            </div>
                           )}
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -569,31 +567,31 @@ export default function EmojiDecodePage() {
                         disabled={!answer.trim()}
                         className="px-5 py-3.5 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                       >
-                        <ChevronRight size={18} />
+                        <IconChevronRight size={18} />
                       </button>
                     </div>
 
                     {/* Action buttons */}
-                    <div className="flex gap-2">
+                    <div className="flex items-center justify-between mt-4">
                       <button
                         onClick={handleHint}
-                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-50 border border-amber-100 text-xs font-bold text-amber-600 hover:bg-amber-100 transition-colors"
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-violet-600 hover:text-violet-700 transition-colors"
                       >
-                        <Lightbulb size={14} />
+                        <IconBulb size={14} />
                         Hint ({hintsUsed}/3)
                       </button>
                       <button
                         onClick={handleSkip}
-                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-100 text-xs font-bold text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors"
                       >
                         Skip
-                        <ChevronRight size={14} />
+                        <IconChevronRight size={14} />
                       </button>
                       <button
                         onClick={handleQuit}
-                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-rose-50 border border-rose-100 text-xs font-bold text-rose-500 hover:bg-rose-100 transition-colors ml-auto"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-gray-300 hover:text-rose-500 transition-colors"
                       >
-                        <Flag size={14} />
+                        <IconFlag size={14} />
                         I Quit
                       </button>
                     </div>
@@ -651,12 +649,12 @@ export default function EmojiDecodePage() {
                     <div className="flex flex-col sm:flex-row gap-3">
                       {submitting ? (
                         <div className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-blue-50 border border-blue-100 text-blue-600 text-sm font-bold">
-                          <Loader2 size={14} className="animate-spin" />
+                          <IconLoader2 size={14} className="animate-spin" />
                           Submitting...
                         </div>
                       ) : submitted ? (
                         <div className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 text-sm font-bold">
-                          <Trophy size={14} />
+                          <IconTrophy size={14} />
                           Score Submitted
                         </div>
                       ) : score > 0 ? (
@@ -664,7 +662,7 @@ export default function EmojiDecodePage() {
                           onClick={() => submitScore(score)}
                           className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-colors"
                         >
-                          <Trophy size={14} />
+                          <IconTrophy size={14} />
                           Retry Submit
                         </button>
                       ) : null}
@@ -672,7 +670,7 @@ export default function EmojiDecodePage() {
                         onClick={startGame}
                         className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 transition-colors"
                       >
-                        <RotateCcw size={14} />
+                        <IconRotate2 size={14} />
                         Play Again
                       </button>
                     </div>

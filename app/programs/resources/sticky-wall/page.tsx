@@ -3,18 +3,18 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  StickyNote,
-  Plus,
-  ZoomIn,
-  ZoomOut,
-  Maximize2,
-  X,
-  Send,
-  Loader2,
-  RefreshCw,
-} from "lucide-react";
+  IconNote,
+  IconPlus,
+  IconZoomIn,
+  IconZoomOut,
+  IconMaximize,
+  IconX,
+  IconSend,
+  IconLoader2,
+  IconRefresh,
+  IconArrowLeft,
+} from "@tabler/icons-react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -129,7 +129,7 @@ function CreateNoteForm({
             <p className="text-xs font-medium text-gray-400 mt-1">Leave a message for others to see</p>
           </div>
           <button onClick={onCancel} className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors">
-            <X size={16} />
+            <IconX size={16} />
           </button>
         </div>
 
@@ -179,10 +179,10 @@ function CreateNoteForm({
           className="w-full mt-6 flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
-            <Loader2 size={16} className="animate-spin" />
+            <IconLoader2 size={16} className="animate-spin" />
           ) : (
             <>
-              <Send size={14} />
+              <IconSend size={14} />
               Post Note
             </>
           )}
@@ -451,12 +451,12 @@ export default function StickyWallPage() {
                 href="/programs/resources"
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-blue-600 transition-colors mb-2"
               >
-                <ArrowLeft size={14} />
+                <IconArrowLeft size={14} />
                 Back to Resources
               </Link>
               <div className="mb-2 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white">
-                  <StickyNote size={20} />
+                  <IconNote size={20} />
                 </div>
                 <p className="text-[11px] font-black text-blue-600 uppercase tracking-widest">Sticky Wall</p>
               </div>
@@ -470,14 +470,14 @@ export default function StickyWallPage() {
                 onClick={() => { fetchNotes(); }}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-100 text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors"
               >
-                <RefreshCw size={14} />
+                <IconRefresh size={14} />
                 Refresh
               </button>
               <button
                 onClick={placeNoteCenter}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors"
               >
-                <Plus size={14} />
+                <IconPlus size={14} />
                 Add Note
               </button>
             </div>
@@ -488,7 +488,7 @@ export default function StickyWallPage() {
         <div className="flex-grow relative bg-gray-50 border-y border-gray-100 overflow-hidden" style={{ minHeight: "60vh" }}>
           {loading ? (
             <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 size={32} className="text-gray-300 animate-spin" />
+              <IconLoader2 size={32} className="text-gray-300 animate-spin" />
             </div>
           ) : (
             <div
@@ -534,7 +534,7 @@ export default function StickyWallPage() {
                     className="absolute flex flex-col items-center justify-center text-gray-300"
                     style={{ left: CANVAS_SIZE / 2 - 100, top: CANVAS_SIZE / 2 - 60, width: 200 }}
                   >
-                    <StickyNote size={40} className="mb-3" />
+                    <IconNote size={40} className="mb-3" />
                     <p className="text-sm font-bold text-center">Double-click to add the first note</p>
                   </div>
                 )}
@@ -545,13 +545,13 @@ export default function StickyWallPage() {
           {/* Zoom controls (bottom right) */}
           <div className="absolute bottom-4 right-4 flex flex-col gap-2">
             <button onClick={zoomIn} className="w-10 h-10 rounded-xl bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors">
-              <ZoomIn size={16} />
+              <IconZoomIn size={16} />
             </button>
             <button onClick={zoomOut} className="w-10 h-10 rounded-xl bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors">
-              <ZoomOut size={16} />
+              <IconZoomOut size={16} />
             </button>
             <button onClick={resetView} className="w-10 h-10 rounded-xl bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors">
-              <Maximize2 size={16} />
+              <IconMaximize size={16} />
             </button>
             <div className="text-center text-[10px] font-bold text-gray-400 bg-white/80 rounded-lg px-2 py-1 border border-gray-100">
               {Math.round(zoom * 100)}%

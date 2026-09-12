@@ -3,22 +3,22 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus,
-  Pencil,
-  Trash2,
-  X,
-  Clock,
-  BookOpen,
-  GraduationCap,
-  MessageSquare,
-  ChevronDown,
-  ChevronUp,
-  Loader2,
-  ArrowLeft,
-  Send,
-  Calendar,
-  Download,
-} from "lucide-react";
+  IconPlus,
+  IconPencil,
+  IconTrash,
+  IconX,
+  IconClock,
+  IconBook,
+  IconSchool,
+  IconMessage,
+  IconChevronDown,
+  IconChevronUp,
+  IconLoader2,
+  IconArrowLeft,
+  IconSend,
+  IconCalendar,
+  IconDownload,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -177,7 +177,7 @@ function CourseCard({
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-gray-900 truncate">{course.name}</h3>
             <div className="flex items-center gap-2 mt-1.5 text-sm text-gray-400">
-              <Clock size={13} />
+              <IconClock size={13} />
               <span className="font-medium">
                 {formatTime(course.start_time)} - {formatTime(course.end_time)}
               </span>
@@ -189,14 +189,14 @@ function CourseCard({
               className="p-2 rounded-xl text-gray-300 hover:text-blue-600 hover:bg-blue-50 transition-colors"
               title="Edit course"
             >
-              <Pencil size={15} />
+              <IconPencil size={15} />
             </button>
             <button
               onClick={onDelete}
               className="p-2 rounded-xl text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
               title="Delete course"
             >
-              <Trash2 size={15} />
+              <IconTrash size={15} />
             </button>
           </div>
         </div>
@@ -206,9 +206,9 @@ function CourseCard({
           onClick={() => setShowNotes(!showNotes)}
           className="flex items-center gap-1.5 mt-3 text-xs font-bold text-gray-300 hover:text-blue-600 transition-colors"
         >
-          <MessageSquare size={12} />
-          {notes.length} {notes.length === 1 ? "note" : "notes"}
-          {showNotes ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          <IconMessage size={12} />
+          <span>{notes.length} {notes.length === 1 ? "note" : "notes"}</span>
+          {showNotes ? <IconChevronUp size={12} /> : <IconChevronDown size={12} />}
         </button>
       </div>
 
@@ -269,7 +269,7 @@ function CourseCard({
                             className="p-1 text-gray-300 hover:text-blue-600 transition-colors"
                             title="Edit note"
                           >
-                            <Pencil size={12} />
+                            <IconPencil size={12} />
                           </button>
                           <button
                             onClick={() => deleteNote(note.id)}
@@ -277,7 +277,7 @@ function CourseCard({
                             className="p-1 text-gray-300 hover:text-red-500 transition-colors disabled:opacity-50"
                             title="Delete note"
                           >
-                            <Trash2 size={12} />
+                            <IconTrash size={12} />
                           </button>
                         </div>
                       </div>
@@ -301,9 +301,9 @@ function CourseCard({
                   className="p-2 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                 >
                   {addingNote ? (
-                    <Loader2 size={16} className="animate-spin" />
+                    <IconLoader2 size={16} className="animate-spin" />
                   ) : (
-                    <Send size={16} />
+                    <IconSend size={16} />
                   )}
                 </button>
               </div>
@@ -406,7 +406,7 @@ function CourseFormModal({
             onClick={onClose}
             className="p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
           >
-            <X size={18} />
+            <IconX size={18} />
           </button>
         </div>
 
@@ -486,7 +486,7 @@ function CourseFormModal({
         >
           {saving ? (
             <>
-              <Loader2 size={16} className="animate-spin" />
+              <IconLoader2 size={16} className="animate-spin" />
               Saving...
             </>
           ) : editingCourse ? (
@@ -530,7 +530,7 @@ function DeleteModal({
         className="bg-white rounded-3xl w-full max-w-sm p-6 sm:p-8 shadow-2xl text-center"
       >
         <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
-          <Trash2 size={20} className="text-red-500" />
+          <IconTrash size={20} className="text-red-500" />
         </div>
         <h3 className="font-bold text-gray-900 mb-2">Delete Course</h3>
         <p className="text-sm text-gray-400 mb-6">
@@ -551,7 +551,7 @@ function DeleteModal({
           >
             {deleting ? (
               <>
-                <Loader2 size={14} className="animate-spin" />
+                <IconLoader2 size={14} className="animate-spin" />
                 Deleting...
               </>
             ) : (
@@ -688,7 +688,7 @@ export default function TimetablePage() {
             href="/programs/resources"
             className="inline-flex items-center gap-1.5 text-sm font-bold text-gray-300 hover:text-blue-600 transition-colors mb-8"
           >
-            <ArrowLeft size={14} />
+            <IconArrowLeft size={14} />
             Resources
           </Link>
 
@@ -737,8 +737,8 @@ export default function TimetablePage() {
                   : "bg-white text-gray-400 border border-gray-200 hover:border-gray-300"
               }`}
             >
-              <BookOpen size={15} />
-              Classes
+              <IconBook size={15} />
+              Lecture Schedule
             </button>
             <button
               onClick={() => setType("exam")}
@@ -748,7 +748,7 @@ export default function TimetablePage() {
                   : "bg-white text-gray-400 border border-gray-200 hover:border-gray-300"
               }`}
             >
-              <GraduationCap size={15} />
+              <IconSchool size={15} />
               Exams
             </button>
           </div>
@@ -769,7 +769,7 @@ export default function TimetablePage() {
                   onClick={downloadTimetableCSV}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-600 hover:text-blue-600 hover:border-blue-200 text-xs font-bold transition-all outline-none"
                 >
-                  <Download size={14} />
+                  <IconDownload size={14} />
                   Download CSV
                 </button>
               )}
@@ -781,7 +781,7 @@ export default function TimetablePage() {
                 disabled={loading || !timetable}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-lg shadow-blue-200"
               >
-                <Plus size={14} />
+                <IconPlus size={14} />
                 Add Course
               </button>
             </div>
@@ -818,7 +818,7 @@ export default function TimetablePage() {
           {/* Loading state */}
           {loading && (
             <div className="flex flex-col items-center py-20">
-              <Loader2
+              <IconLoader2
                 size={32}
                 className="text-blue-600 animate-spin mb-4"
               />
@@ -836,7 +836,7 @@ export default function TimetablePage() {
               className="flex flex-col items-center py-16 text-center"
             >
               <div className="w-16 h-16 rounded-3xl bg-gray-100 flex items-center justify-center mb-4">
-                <Calendar size={28} className="text-gray-300" />
+                <IconCalendar size={28} className="text-gray-300" />
               </div>
               <p className="text-sm font-bold text-gray-400 mb-1">
                 No courses on {DAY_LABELS[selectedDay]}
@@ -852,7 +852,7 @@ export default function TimetablePage() {
                 disabled={!timetable}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
-                <Plus size={14} />
+                <IconPlus size={14} />
                 Add Course
               </button>
             </motion.div>

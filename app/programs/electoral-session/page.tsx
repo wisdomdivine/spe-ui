@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Vote, Calendar, Clock, Users, ChevronRight, ShieldCheck, Loader2 } from "lucide-react";
+import { IconChecklist, IconCalendar, IconClock, IconUsers, IconChevronRight, IconShieldCheck, IconLoader2 } from "@tabler/icons-react";
 import { computeElectionTimeTag } from "@/lib/election-status";
 
 /* ── Types ── */
@@ -150,7 +150,7 @@ export default function ElectoralSessionPage() {
               className="mb-6 flex items-center gap-3"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white">
-                <Vote size={22} />
+                <IconChecklist size={22} />
               </div>
               <span className="text-xs font-bold tracking-[0.2em] uppercase text-blue-600">
                 Electoral Session
@@ -185,14 +185,14 @@ export default function ElectoralSessionPage() {
               transition={{ duration: 0.4, delay: 0.35 }}
               className="mt-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2.5"
             >
-              <ShieldCheck size={16} className="text-emerald-600" />
+              <IconShieldCheck size={16} className="text-emerald-600" />
               <span className="text-sm font-semibold text-emerald-700">Anonymous &amp; Secure Voting</span>
             </motion.div>
           </div>
 
           {loading ? (
             <div className="flex items-center justify-center py-24">
-              <Loader2 size={28} className="animate-spin text-blue-600" />
+              <IconLoader2 size={28} className="animate-spin text-blue-600" />
             </div>
           ) : loadError ? (
             <div className="rounded-2xl border border-red-100 bg-red-50 px-6 py-10 text-center">
@@ -305,7 +305,7 @@ function ElectionCard({
           </div>
         ) : <div />}
         {isClickable && (
-          <ChevronRight size={20} className="text-gray-300 transition-all group-hover:text-blue-600 group-hover:translate-x-1" />
+          <IconChevronRight size={20} className="text-gray-300 transition-all group-hover:text-blue-600 group-hover:translate-x-1" />
         )}
       </div>
 
@@ -318,17 +318,19 @@ function ElectionCard({
       {/* Meta row */}
       <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
         <div className="flex items-center gap-2 text-sm font-semibold text-gray-400">
-          <Calendar size={15} />
-          <span>{formatDateNice(election.election_date)}</span>
+          <IconCalendar size={15} />
+          {formatDateNice(election.election_date)}
         </div>
-        <div className="flex items-center gap-2 text-sm font-semibold text-gray-400">
-          <Clock size={15} />
-          <span>{formatTime12(election.start_time)} – {formatTime12(election.end_time)}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm font-semibold text-gray-400">
-          <Users size={15} />
+        <span className="flex items-center gap-1.5 font-medium">
+          <IconClock size={15} />
+          {election.start_time && election.end_time
+            ? `${election.start_time.slice(0, 5)} - ${election.end_time.slice(0, 5)}`
+            : "Time TBA"}
+        </span>
+        <span className="flex items-center gap-1.5 font-medium">
+          <IconUsers size={15} />
           <span>{election.positions_count} positions · {election.candidates_count} candidates</span>
-        </div>
+        </span>
       </div>
 
       {/* Turnout bar (only for ongoing/completed) */}
@@ -370,7 +372,7 @@ function ElectionCard({
       {!election.is_open && timeTag !== null && (
         <div className="mt-6 flex items-center gap-2">
           <div className="flex items-center gap-2 rounded-full bg-amber-50 border border-amber-200 px-5 py-2.5">
-            <Clock size={14} className="text-amber-500" />
+            <IconClock size={14} className="text-amber-500" />
             <span className="text-sm font-semibold text-amber-700">Awaiting to open</span>
           </div>
         </div>

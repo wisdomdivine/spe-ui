@@ -4,7 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Linkedin, Twitter, Mail, ArrowUpRight } from "lucide-react";
+import { IconBrandLinkedin, IconBrandTwitter, IconMail } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -173,17 +173,17 @@ export default function TeamPage() {
                     <div className="flex gap-4 rounded-3xl bg-white/90 px-6 py-4 shadow-xl backdrop-blur-md">
                       {member.linkedin && (
                         <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-900 transition-colors hover:text-blue-600">
-                          <Linkedin className="h-5 w-5" />
+                          <IconBrandLinkedin className="h-5 w-5" />
                         </a>
                       )}
                       {member.twitter && (
                         <a href={member.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-900 transition-colors hover:text-blue-400">
-                          <Twitter className="h-5 w-5" />
+                          <IconBrandTwitter className="h-5 w-5" />
                         </a>
                       )}
                       {member.email && (
                         <a href={`mailto:${member.email}`} className="text-gray-900 transition-colors hover:text-red-500">
-                          <Mail className="h-5 w-5" />
+                          <IconMail className="h-5 w-5" />
                         </a>
                       )}
                     </div>

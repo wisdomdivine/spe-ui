@@ -3,18 +3,18 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ArrowLeft,
-  ArrowRight,
-  ArrowLeftRight,
-  Droplets,
-  BarChart3,
-  TrendingDown,
-  Activity,
-  Copy,
-  Check,
-  ChevronDown,
-  Info,
-} from "lucide-react";
+  IconArrowLeft,
+  IconArrowRight,
+  IconArrowsExchange,
+  IconDroplet,
+  IconChartBar,
+  IconTrendingDown,
+  IconActivity,
+  IconCopy,
+  IconCheck,
+  IconChevronDown,
+  IconInfoCircle,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -45,11 +45,11 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  { id: "converter", label: "Unit Converter", shortLabel: "Units", icon: ArrowLeftRight, description: "Convert between common oilfield and SI units" },
-  { id: "darcy", label: "Darcy's Law", shortLabel: "Darcy", icon: Droplets, description: "Solve for any unknown variable in Darcy's equation" },
-  { id: "material", label: "Material Balance", shortLabel: "P/Z", icon: BarChart3, description: "Gas reservoir P/Z vs Gp plot with OGIP estimation" },
-  { id: "decline", label: "Decline Curve", shortLabel: "DCA", icon: TrendingDown, description: "Exponential, hyperbolic, and harmonic decline analysis" },
-  { id: "ipr", label: "Vogel's IPR", shortLabel: "IPR", icon: Activity, description: "Inflow Performance Relationship curve generation" },
+  { id: "converter", label: "Unit Converter", shortLabel: "Units", icon: IconArrowsExchange, description: "Convert between common oilfield and SI units" },
+  { id: "darcy", label: "Darcy's Law", shortLabel: "Darcy", icon: IconDroplet, description: "Solve for any unknown variable in Darcy's equation" },
+  { id: "material", label: "Material Balance", shortLabel: "P/Z", icon: IconChartBar, description: "Gas reservoir P/Z vs Gp plot with OGIP estimation" },
+  { id: "decline", label: "Decline Curve", shortLabel: "DCA", icon: IconTrendingDown, description: "Exponential, hyperbolic, and harmonic decline analysis" },
+  { id: "ipr", label: "Vogel's IPR", shortLabel: "IPR", icon: IconActivity, description: "Inflow Performance Relationship curve generation" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -149,7 +149,7 @@ function CopyButton({ value }: { value: string }) {
       className="p-2 rounded-xl text-gray-300 hover:text-blue-600 hover:bg-blue-50 transition-all"
       title="Copy"
     >
-      {copied ? <Check size={14} /> : <Copy size={14} />}
+      {copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
     </button>
   );
 }
@@ -158,7 +158,7 @@ function FormulaBlock({ formula, description }: { formula: string; description: 
   return (
     <div className="mt-6 rounded-2xl bg-gray-50 border border-gray-100 p-5">
       <div className="flex items-start gap-3">
-        <Info size={14} className="text-blue-400 mt-0.5 shrink-0" />
+        <IconInfoCircle size={14} className="text-blue-400 mt-0.5 shrink-0" />
         <div>
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Formula</p>
           <p className="text-sm font-mono font-bold text-gray-700">{formula}</p>
@@ -269,7 +269,7 @@ function UnitConverter() {
             onClick={() => { const temp = fromIdx; setFromIdx(toIdx); setToIdx(temp); }}
             className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors"
           >
-            <ArrowLeftRight size={18} />
+            <IconArrowsExchange size={18} />
           </button>
         </div>
 
@@ -761,12 +761,12 @@ export default function PetroCalcPage() {
               href="/programs/resources"
               className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-blue-600 transition-colors mb-4"
             >
-              <ArrowLeft size={14} />
-              Back to Resources
+              <IconArrowLeft size={14} />
+              All Resources
             </Link>
-            <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white">
-                <Activity size={20} />
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-200">
+                <IconActivity size={20} />
               </div>
               <p className="text-[11px] font-black text-blue-600 uppercase tracking-widest">PetroCalc Suite</p>
             </div>

@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { IconMenu2, IconX, IconChevronDown } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Header({ isDark = false }: { isDark?: boolean }) {
@@ -88,7 +88,7 @@ export default function Header({ isDark = false }: { isDark?: boolean }) {
                       }`}
                     >
                       {link.name}
-                      <ChevronDown className={`h-4 w-4 transition-transform ${activeDropdown === link.name ? "rotate-180" : ""}`} />
+                      <IconChevronDown className={`h-4 w-4 transition-transform ${activeDropdown === link.name ? "rotate-180" : ""}`} />
                     </button>
                     {isActive && (
                       <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-blue-500" />
@@ -135,9 +135,9 @@ export default function Header({ isDark = false }: { isDark?: boolean }) {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`relative text-[15px] font-semibold transition-colors cursor-pointer ${
+                  className={`relative text-[15px] font-semibold transition-colors duration-200 ${
                     isActive
-                      ? "text-blue-500"
+                      ? "text-blue-500 font-bold"
                       : isDark
                         ? "text-gray-200 hover:text-white"
                         : "text-gray-800 hover:text-blue-600"
@@ -162,7 +162,7 @@ export default function Header({ isDark = false }: { isDark?: boolean }) {
                 : "bg-gray-50 border-transparent text-black"
             }`}
           >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isOpen ? <IconX className="h-6 w-6" /> : <IconMenu2 className="h-6 w-6" />}
           </button>
         </div>
 

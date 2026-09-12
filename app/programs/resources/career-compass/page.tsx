@@ -3,15 +3,15 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Compass,
-  ChevronRight,
-  ArrowLeft,
-  Briefcase,
-  TrendingUp,
-  Award,
-  Wallet,
-  X,
-} from "lucide-react";
+  IconCompass,
+  IconChevronRight,
+  IconArrowLeft,
+  IconBriefcase,
+  IconTrendingUp,
+  IconAward,
+  IconWallet,
+  IconX,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -74,7 +74,7 @@ function RoleCard({ role, onClick }: { role: CareerRole; onClick: () => void }) 
           <p className="text-sm font-bold text-gray-700">{formatNaira(role.salary.entry[0])} - {formatNaira(role.salary.entry[1])}</p>
         </div>
         <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-gray-300 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">
-          <ChevronRight size={16} />
+          <IconChevronRight size={16} />
         </div>
       </div>
     </motion.button>
@@ -115,7 +115,7 @@ function RoleDetail({ role, onClose }: { role: CareerRole; onClose: () => void }
               <h2 className="text-2xl sm:text-3xl font-black text-gray-900 leading-tight">{role.title}</h2>
             </div>
             <button onClick={onClose} className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors shrink-0">
-              <X size={20} />
+              <IconX size={20} />
             </button>
           </div>
           <p className="text-base text-gray-500 font-medium leading-relaxed">{role.description}</p>
@@ -125,7 +125,7 @@ function RoleDetail({ role, onClose }: { role: CareerRole; onClose: () => void }
           {/* Day-to-Day */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Briefcase size={16} className="text-blue-600" />
+              <IconBriefcase size={16} className="text-blue-600" />
               <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">What You Do Day-to-Day</h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -141,7 +141,7 @@ function RoleDetail({ role, onClose }: { role: CareerRole; onClose: () => void }
           {/* Salary */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Wallet size={16} className="text-blue-600" />
+              <IconWallet size={16} className="text-blue-600" />
               <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Estimated Salary (Nigeria, Annual)</h3>
             </div>
             <div className="bg-gray-50 rounded-2xl p-5 space-y-4">
@@ -157,7 +157,7 @@ function RoleDetail({ role, onClose }: { role: CareerRole; onClose: () => void }
           {/* Skills */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <TrendingUp size={16} className="text-blue-600" />
+              <IconTrendingUp size={16} className="text-blue-600" />
               <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Key Skills</h3>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -172,7 +172,7 @@ function RoleDetail({ role, onClose }: { role: CareerRole; onClose: () => void }
           {/* Certifications */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Award size={16} className="text-blue-600" />
+              <IconAward size={16} className="text-blue-600" />
               <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Certifications</h3>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -187,7 +187,7 @@ function RoleDetail({ role, onClose }: { role: CareerRole; onClose: () => void }
           {/* Growth Path */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <TrendingUp size={16} className="text-blue-600" />
+              <IconTrendingUp size={16} className="text-blue-600" />
               <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Career Trajectory</h3>
             </div>
             <div className="bg-blue-600 rounded-2xl p-5 overflow-x-auto">
@@ -195,7 +195,7 @@ function RoleDetail({ role, onClose }: { role: CareerRole; onClose: () => void }
                 {role.growthPath.split(" -> ").map((step, i, arr) => (
                   <span key={i} className="flex items-center gap-2 shrink-0">
                     <span className="px-3 py-1.5 rounded-lg bg-white/10 text-white text-xs font-bold whitespace-nowrap">{step}</span>
-                    {i < arr.length - 1 && <ChevronRight size={14} className="text-blue-300" />}
+                    {i < arr.length - 1 && <IconChevronRight size={14} className="text-blue-300" />}
                   </span>
                 ))}
               </div>
@@ -234,12 +234,12 @@ export default function CareerCompassPage() {
               href="/programs/resources"
               className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-blue-600 transition-colors mb-4"
             >
-              <ArrowLeft size={14} />
-              Back to Resources
+              <IconArrowLeft size={14} />
+              All Resources
             </Link>
-            <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white">
-                <Compass size={20} />
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-200">
+                <IconCompass size={20} />
               </div>
               <p className="text-[11px] font-black text-blue-600 uppercase tracking-widest">Career Compass</p>
             </div>
@@ -306,7 +306,7 @@ export default function CareerCompassPage() {
 
           {filteredRoles.length === 0 && (
             <div className="text-center py-24">
-              <Compass size={40} className="text-gray-200 mx-auto mb-4" />
+              <IconCompass size={40} className="text-gray-200 mx-auto mb-4" />
               <p className="text-lg font-bold text-gray-300">No roles found in this sector.</p>
             </div>
           )}

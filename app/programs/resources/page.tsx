@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { IconArrowRight } from "@tabler/icons-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -377,7 +377,7 @@ export default function ResourcesPage() {
                   </p>
                   <div className="flex items-center gap-2 text-sm font-bold text-gray-300 group-hover:text-blue-600 transition-colors">
                     Open Tool
-                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                    <IconArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                   </div>
                 </Link>
               </motion.div>

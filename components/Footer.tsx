@@ -4,15 +4,15 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
-  ArrowRight,
-  Facebook,
-  Linkedin,
-  Twitter,
-  Youtube,
-  Instagram,
-  Loader2,
-  Check,
-} from "lucide-react";
+  IconArrowRight,
+  IconBrandFacebook,
+  IconBrandLinkedin,
+  IconBrandTwitter,
+  IconBrandYoutube,
+  IconBrandInstagram,
+  IconLoader2,
+  IconCheck,
+} from "@tabler/icons-react";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -21,10 +21,10 @@ export default function Footer() {
   const [error, setError] = useState("");
 
   const socialLinks = [
-    { name: "Twitter", href: "https://x.com/Spe_ui_?s=20", icon: Twitter },
-    { name: "LinkedIn", href: "https://www.linkedin.com/company/spe-ui/", icon: Linkedin },
-    { name: "YouTube", href: "https://www.youtube.com/@SPE_UI", icon: Youtube },
-    { name: "Instagram", href: "https://www.instagram.com/speui_", icon: Instagram}
+    { name: "Twitter", href: "https://x.com/Spe_ui_?s=20", icon: IconBrandTwitter },
+    { name: "LinkedIn", href: "https://www.linkedin.com/company/spe-ui/", icon: IconBrandLinkedin },
+    { name: "YouTube", href: "https://www.youtube.com/@SPE_UI", icon: IconBrandYoutube },
+    { name: "Instagram", href: "https://www.instagram.com/speui_", icon: IconBrandInstagram}
   ];
 
   return (
@@ -91,11 +91,11 @@ export default function Footer() {
                   {loading ? "Submitting..." : message ? "Subscribed!" : "Submit"}
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black">
                     {loading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <IconLoader2 className="h-5 w-5 animate-spin" />
                     ) : message ? (
-                      <Check className="h-5 w-5 text-emerald-400" />
+                      <IconCheck className="h-5 w-5 text-emerald-400" />
                     ) : (
-                      <ArrowRight className="h-5 w-5" />
+                      <IconArrowRight className="h-5 w-5" />
                     )}
                   </div>
                 </motion.button>

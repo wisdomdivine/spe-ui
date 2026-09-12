@@ -4,9 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
-  ArrowRight,
-  Plus,
-} from "lucide-react";
+  IconArrowRight,
+  IconPlus,
+} from "@tabler/icons-react";
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -376,7 +376,7 @@ export default function Home() {
               >
                 Join Us Today
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
-                  <ArrowRight className="h-5 w-5" />
+                  <IconArrowRight className="h-5 w-5" />
                 </div>
               </motion.button>
             </div>
@@ -431,7 +431,7 @@ export default function Home() {
               >
                 Learn More
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black">
-                  <ArrowRight className="h-6 w-6 text-white" />
+                  <IconArrowRight className="h-6 w-6 text-white" />
                 </div>
               </motion.button>
             </div>
@@ -595,7 +595,7 @@ export default function Home() {
                     className="flex h-14 shrink-0 cursor-pointer items-center justify-center gap-3 whitespace-nowrap rounded-full bg-black px-8 text-base font-bold tracking-wide text-white shadow-2xl transition-all sm:h-16 sm:gap-4 sm:px-12 sm:text-[18px]"
                   >
                     View Events
-                    <ArrowRight className="h-5 w-5" />
+                    <IconArrowRight className="h-5 w-5" />
                   </motion.button>
                 </div>
               </h2>
@@ -706,7 +706,7 @@ export default function Home() {
                     </span>
                   </div>
                   <div className={`shrink-0 rounded-full border border-gray-200 bg-white p-1.5 transition-transform duration-300 ${openFaq === index ? 'rotate-45' : ''}`}>
-                    <Plus className="h-4 w-4 text-gray-600" />
+                    <IconPlus className="h-4 w-4 text-gray-600" />
                   </div>
                 </button>
                 <AnimatePresence>
@@ -776,7 +776,7 @@ export default function Home() {
               >
                 Learn More
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black sm:h-12 sm:w-12">
-                  <ArrowRight className="h-5 w-5 text-white sm:h-6 sm:w-6" />
+                  <IconArrowRight className="h-5 w-5 text-white sm:h-6 sm:w-6" />
                 </div>
               </motion.a>
             </motion.div>

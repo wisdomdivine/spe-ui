@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowRight, CheckCircle2, Loader2, Sparkles } from "lucide-react";
+import { IconX, IconArrowRight, IconCircleCheck, IconLoader2, IconSparkles } from "@tabler/icons-react";
 
 const STORAGE_KEY = "spe_newsletter_dismissed";
 const SCROLL_THRESHOLD = 0.25; // show after scrolling 25% of page
@@ -155,7 +155,7 @@ export default function NewsletterPopup() {
                   onClick={dismiss}
                   className="absolute right-4 top-4 rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
                 >
-                  <X size={18} />
+                  <IconX size={18} />
                 </button>
 
                 {status === "success" ? (
@@ -165,7 +165,7 @@ export default function NewsletterPopup() {
                     className="flex flex-col items-center text-center"
                   >
                     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50">
-                      <CheckCircle2 size={32} className="text-emerald-500" />
+                      <IconCircleCheck size={32} className="text-emerald-500" />
                     </div>
                     <p className="text-xl font-bold text-gray-900">{message}</p>
                     <p className="mt-2 text-sm text-gray-500">
@@ -213,11 +213,11 @@ export default function NewsletterPopup() {
                         className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700 hover:shadow-blue-600/30 disabled:opacity-50 disabled:shadow-none"
                       >
                         {status === "loading" ? (
-                          <Loader2 size={18} className="animate-spin" />
+                          <IconLoader2 size={18} className="animate-spin" />
                         ) : (
                           <>
                             Subscribe Now
-                            <ArrowRight size={16} />
+                            <IconArrowRight size={16} />
                           </>
                         )}
                       </button>

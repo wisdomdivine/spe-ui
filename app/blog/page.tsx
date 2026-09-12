@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { ChevronLeft, ChevronRight, ArrowUpRight, Tag } from "lucide-react";
+import { IconChevronLeft, IconChevronRight, IconArrowUpRight, IconTag } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -212,7 +212,7 @@ export default function BlogPage() {
                         
                         <div className="mt-auto flex items-center gap-2 text-sm font-bold text-[#2563eb]">
                           <span>Read More</span>
-                          <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                          <IconArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                         </div>
                       </div>
                     </Link>
@@ -233,7 +233,7 @@ export default function BlogPage() {
                   <div className="sticky top-36 space-y-6">
                     <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
                       <div className="flex items-center gap-2 mb-5">
-                        <Tag className="h-4 w-4 text-blue-600" />
+                        <IconTag className="h-4 w-4 text-blue-600" />
                         <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Tags</h3>
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -275,7 +275,7 @@ export default function BlogPage() {
                   disabled={page === 1}
                   className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-400 transition-colors hover:border-blue-600 hover:text-blue-600 disabled:opacity-40"
                 >
-                  <ChevronLeft className="h-5 w-5" />
+                  <IconChevronLeft className="h-5 w-5" />
                 </button>
                 
                 {getPaginationItems().map((p, idx) => (
@@ -299,7 +299,7 @@ export default function BlogPage() {
                   disabled={page === totalPages}
                   className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-colors hover:border-blue-600 hover:text-blue-600 disabled:opacity-40"
                 >
-                  <ChevronRight className="h-5 w-5" />
+                  <IconChevronRight className="h-5 w-5" />
                 </button>
               </nav>
             </div>

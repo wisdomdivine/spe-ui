@@ -7,19 +7,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/Header";
 import VotingCrowd from "@/components/elections/VotingCrowd";
 import {
-  ArrowLeft,
-  ArrowRight,
-  ShieldCheck,
-  Vote,
-  CheckCircle,
-  ChevronLeft,
-  ChevronRight,
-  User,
-  AlertCircle,
-  Loader2,
-  PartyPopper,
-  Lock,
-} from "lucide-react";
+  IconArrowLeft,
+  IconArrowRight,
+  IconShieldCheck,
+  IconChecklist,
+  IconCircleCheck,
+  IconChevronLeft,
+  IconChevronRight,
+  IconUser,
+  IconAlertCircle,
+  IconLoader2,
+  IconConfetti,
+  IconLock,
+} from "@tabler/icons-react";
 
 /* ── Types ── */
 interface Candidate {
@@ -288,7 +288,7 @@ export default function VotePage() {
       <div className="flex min-h-screen flex-col bg-[#F8FAFF] font-sans text-black">
         <Header />
         <main className="flex flex-grow items-center justify-center">
-          <Loader2 size={32} className="animate-spin text-blue-600" />
+          <IconLoader2 size={32} className="animate-spin text-blue-600" />
         </main>
       </div>
     );
@@ -300,7 +300,7 @@ export default function VotePage() {
         <Header />
         <main className="flex flex-grow items-center justify-center px-6">
           <div className="text-center max-w-md">
-            <AlertCircle size={48} className="mx-auto mb-4 text-red-400" />
+            <IconAlertCircle size={48} className="mx-auto mb-4 text-red-400" />
             <h1 className="text-xl font-bold text-gray-900 mb-2">Cannot Access Voting Booth</h1>
             <p className="text-sm font-medium text-gray-500 mb-6">{pageError}</p>
             <Link
@@ -335,7 +335,7 @@ export default function VotePage() {
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
               className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-emerald-100"
             >
-              <CheckCircle size={48} className="text-emerald-600" />
+              <IconCircleCheck size={48} className="text-emerald-600" />
             </motion.div>
 
             <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">Vote Submitted!</h1>
@@ -344,7 +344,7 @@ export default function VotePage() {
             </p>
 
             <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2.5">
-              <ShieldCheck size={16} className="text-emerald-600" />
+              <IconShieldCheck size={16} className="text-emerald-600" />
               <span className="text-sm font-semibold text-emerald-700">Your vote is anonymous &amp; sealed</span>
             </div>
 
@@ -356,7 +356,7 @@ export default function VotePage() {
                 Back to Elections
               </Link>
               <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-400">
-                <PartyPopper size={13} className="text-amber-500" />
+                <IconConfetti size={13} className="text-amber-500" />
                 Results will be available after voting closes at {election.end_time ? formatTime12(election.end_time) : "the end"}
               </div>
             </div>
@@ -378,7 +378,7 @@ export default function VotePage() {
               onClick={goPrev}
               className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-gray-400 hover:text-blue-600 transition-colors"
             >
-              <ArrowLeft size={16} /> Back to Positions
+              <IconArrowLeft size={16} /> Back to Positions
             </button>
 
             <motion.div
@@ -389,7 +389,7 @@ export default function VotePage() {
               {/* Header */}
               <div className="bg-gradient-to-br from-blue-600 to-blue-700 px-8 py-8 text-white">
                 <div className="flex items-center gap-3 mb-2">
-                  <Vote size={20} />
+                  <IconChecklist size={20} />
                   <span className="text-xs font-bold tracking-[0.15em] uppercase text-blue-200">Review Your Ballot</span>
                 </div>
                 <h2 className="text-xl font-bold">Confirm Your Selections</h2>
@@ -428,12 +428,12 @@ export default function VotePage() {
               <div className="px-8 py-6 bg-gray-50/50">
                 {submitError && (
                   <div className="mb-4 flex items-center gap-2 rounded-xl bg-red-50 border border-red-100 p-3 text-sm font-medium text-red-600">
-                    <AlertCircle size={15} /> {submitError}
+                    <IconAlertCircle size={15} /> {submitError}
                   </div>
                 )}
 
                 <div className="mb-4 flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-100 p-3 text-sm font-medium text-amber-700">
-                  <AlertCircle size={15} />
+                  <IconAlertCircle size={15} />
                   This action is final. You cannot change your vote after submission.
                 </div>
 
@@ -443,16 +443,16 @@ export default function VotePage() {
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-4 text-base font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 disabled:opacity-50"
                 >
                   {submitting ? (
-                    <Loader2 size={20} className="animate-spin" />
+                    <IconLoader2 size={20} className="animate-spin" />
                   ) : (
                     <>
-                      <Lock size={16} /> Submit Ballot
+                      <IconLock size={16} /> Submit Ballot
                     </>
                   )}
                 </button>
 
                 <p className="mt-3 text-center text-[11px] font-medium text-gray-400">
-                  <ShieldCheck size={11} className="inline mr-1 text-emerald-500" />
+                  <IconShieldCheck size={11} className="inline mr-1 text-emerald-500" />
                   Your ballot is anonymous. No one, not even administrators, can see who you voted for.
                 </p>
               </div>
@@ -479,10 +479,10 @@ export default function VotePage() {
               href="/programs/electoral-session"
               className="inline-flex items-center gap-2 text-sm font-semibold text-gray-400 hover:text-blue-600 transition-colors"
             >
-              <ArrowLeft size={16} /> Exit
+              <IconArrowLeft size={16} /> Exit
             </Link>
             <div className="flex items-center gap-2 text-xs font-semibold text-gray-400">
-              <ShieldCheck size={13} className="text-emerald-500" /> Anonymous Voting
+              <IconShieldCheck size={13} className="text-emerald-500" /> Anonymous Voting
             </div>
           </div>
 
@@ -586,7 +586,7 @@ export default function VotePage() {
                             ? "border-blue-500 bg-blue-600"
                             : "border-gray-200 bg-white"
                         }`}>
-                          {isSelected && <CheckCircle size={16} className="text-white" />}
+                          {isSelected && <IconCircleCheck size={16} className="text-white" />}
                         </div>
                       </button>
 
@@ -656,7 +656,7 @@ export default function VotePage() {
                         ? "border-amber-500 bg-amber-500"
                         : "border-gray-200 bg-white"
                     }`}>
-                      {selectedCandidate === NONE_OF_ABOVE_TOKEN && <CheckCircle size={16} className="text-white" />}
+                      {selectedCandidate === NONE_OF_ABOVE_TOKEN && <IconCircleCheck size={16} className="text-white" />}
                     </div>
                   </button>
                 </motion.div>
@@ -671,7 +671,7 @@ export default function VotePage() {
               disabled={currentPosition === 0 || pauseReason !== null}
               className="flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-gray-500 transition-colors hover:bg-white hover:text-gray-900 disabled:opacity-30 disabled:hover:bg-transparent"
             >
-              <ChevronLeft size={18} /> Previous
+              <IconChevronLeft size={18} /> Previous
             </button>
 
             <button
@@ -684,9 +684,9 @@ export default function VotePage() {
               }`}
             >
               {currentPosition === totalPositions - 1 ? (
-                <>Review Ballot <Vote size={16} /></>
+                <>Review Ballot <IconChecklist size={16} /></>
               ) : (
-                <>Next <ChevronRight size={18} /></>
+                <>Next <IconChevronRight size={18} /></>
               )}
             </button>
           </div>
@@ -694,7 +694,7 @@ export default function VotePage() {
           {/* Bottom trust badge */}
           <div className="mt-8 flex justify-center">
             <p className="text-[11px] font-medium text-gray-300 flex items-center gap-1.5">
-              <Lock size={10} className="text-gray-300" />
+              <IconLock size={10} className="text-gray-300" />
               Your vote is encrypted and anonymous
             </p>
           </div>
@@ -736,7 +736,7 @@ export default function VotePage() {
             >
               <div className="flex items-start gap-3">
                 <div className="h-10 w-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                  <AlertCircle size={18} />
+                  <IconAlertCircle size={18} />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">Confirm Void Vote</h3>
@@ -788,7 +788,7 @@ export default function VotePage() {
                     pauseReason === "completed" ? "bg-gray-100 text-gray-600" : "bg-amber-100 text-amber-700"
                   }`}
                 >
-                  <AlertCircle size={18} />
+                  <IconAlertCircle size={18} />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-gray-900">
@@ -824,7 +824,7 @@ export default function VotePage() {
           >
             <div className="flex items-start gap-2.5">
               <div className="mt-0.5 rounded-lg bg-blue-100 p-1.5 text-blue-600">
-                <CheckCircle size={14} />
+                <IconCircleCheck size={14} />
               </div>
               <div>
                 <p className="text-sm font-bold text-gray-900">Progress restored</p>

@@ -3,18 +3,18 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Zap,
-  Trophy,
-  RotateCcw,
-  Crown,
-  Timer,
-  AlertTriangle,
-  ChevronRight,
-  User,
-  Flag,
-  ArrowLeft,
-  Loader2,
-} from "lucide-react";
+  IconBolt,
+  IconTrophy,
+  IconRotate2,
+  IconCrown,
+  IconClock,
+  IconAlertTriangle,
+  IconChevronRight,
+  IconUser,
+  IconFlag,
+  IconArrowLeft,
+  IconLoader2,
+} from "@tabler/icons-react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -51,7 +51,7 @@ function Leaderboard({
   return (
     <div className="bg-white rounded-[2rem] border border-gray-100 p-6 sm:p-8">
       <div className="flex items-center gap-2 mb-6">
-        <Trophy size={16} className="text-amber-500" />
+        <IconTrophy size={16} className="text-amber-500" />
         <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Fastest Reactions</h3>
       </div>
       {loading ? (
@@ -74,7 +74,7 @@ function Leaderboard({
                     i === 0 ? "text-amber-500" : i === 1 ? "text-gray-400" : i === 2 ? "text-amber-700" : "text-gray-300"
                   }`}
                 >
-                  {i === 0 ? <Crown size={14} className="mx-auto" /> : i + 1}
+                  {i === 0 ? <IconCrown size={14} className="mx-auto" /> : i + 1}
                 </span>
                 <span className={`text-sm font-bold flex-grow ${isMe ? "text-blue-600" : "text-gray-700"}`}>
                   {entry.player_name}
@@ -288,12 +288,12 @@ export default function ReactionTestPage() {
               href="/programs/resources"
               className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-blue-600 transition-colors mb-4"
             >
-              <ArrowLeft size={14} />
-              Back to Resources
+              <IconArrowLeft size={14} />
+              All Resources
             </Link>
-            <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-600 text-white">
-                <Zap size={20} />
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-600 text-white shadow-lg shadow-rose-200">
+                <IconBolt size={20} />
               </div>
               <p className="text-[11px] font-black text-rose-600 uppercase tracking-widest">Reaction Speed Test</p>
             </div>
@@ -330,7 +330,7 @@ export default function ReactionTestPage() {
                     className="bg-white rounded-[2rem] sm:rounded-[3rem] border border-gray-100 p-8 sm:p-12 text-center"
                   >
                     <div className="w-20 h-20 rounded-3xl bg-gray-50 flex items-center justify-center mx-auto mb-6">
-                      <Zap size={36} className="text-gray-300" />
+                      <IconBolt size={36} className="text-gray-300" />
                     </div>
                     <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-3">Ready to Test Your Reflexes?</h2>
                     <p className="text-sm font-medium text-gray-400 mb-8 max-w-md mx-auto">
@@ -355,7 +355,7 @@ export default function ReactionTestPage() {
                     className="bg-white rounded-[2rem] sm:rounded-[3rem] border border-gray-100 p-8 sm:p-12 text-center"
                   >
                     <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-6">
-                      <User size={28} className="text-blue-600" />
+                      <IconUser size={28} className="text-blue-600" />
                     </div>
                     <h2 className="text-xl sm:text-2xl font-black text-gray-900 mb-2">What Should We Call You?</h2>
                     <p className="text-sm font-medium text-gray-400 mb-6">This name will appear on the leaderboard.</p>
@@ -399,7 +399,7 @@ export default function ReactionTestPage() {
                       onClick={(e) => { e.stopPropagation(); handleQuit(); }}
                       className="absolute bottom-4 right-4 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/20 backdrop-blur-sm text-xs font-bold text-white/80 hover:bg-white/30 transition-colors z-10"
                     >
-                      <Flag size={12} />
+                      <IconFlag size={12} />
                       I Quit
                     </button>
                   </motion.div>
@@ -425,7 +425,7 @@ export default function ReactionTestPage() {
                       onClick={(e) => { e.stopPropagation(); handleQuit(); }}
                       className="absolute bottom-4 right-4 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/20 backdrop-blur-sm text-xs font-bold text-white/80 hover:bg-white/30 transition-colors z-10"
                     >
-                      <Flag size={12} />
+                      <IconFlag size={12} />
                       I Quit
                     </button>
                   </motion.div>
@@ -442,7 +442,7 @@ export default function ReactionTestPage() {
                     style={{ minHeight: 320 }}
                   >
                     <div className="flex flex-col items-center justify-center h-full min-h-[240px]">
-                      <AlertTriangle size={40} className="text-white mb-4" />
+                      <IconAlertTriangle size={40} className="text-white mb-4" />
                       <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">Too Early!</h2>
                       <p className="text-sm font-bold text-white/70 mb-6">Wait for the screen to turn green before tapping.</p>
                       <button
@@ -490,13 +490,13 @@ export default function ReactionTestPage() {
                           className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-colors"
                         >
                           Next Round
-                          <ChevronRight size={14} />
+                          <IconChevronRight size={14} />
                         </button>
                         <button
                           onClick={handleQuit}
                           className="flex items-center gap-1.5 px-5 py-3.5 rounded-2xl bg-rose-50 border border-rose-100 text-sm font-bold text-rose-500 hover:bg-rose-100 transition-colors"
                         >
-                          <Flag size={14} />
+                          <IconFlag size={14} />
                           I Quit
                         </button>
                       </div>
@@ -561,12 +561,12 @@ export default function ReactionTestPage() {
                     <div className="flex flex-col sm:flex-row gap-3">
                       {submitting ? (
                         <div className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-blue-50 border border-blue-100 text-blue-600 text-sm font-bold">
-                          <Loader2 size={14} className="animate-spin" />
+                          <IconLoader2 size={14} className="animate-spin" />
                           Submitting...
                         </div>
                       ) : submitted ? (
                         <div className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 text-sm font-bold">
-                          <Trophy size={14} />
+                          <IconTrophy size={14} />
                           Score Submitted
                         </div>
                       ) : (
@@ -574,7 +574,7 @@ export default function ReactionTestPage() {
                           onClick={() => submitScore(bestTime!)}
                           className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-colors"
                         >
-                          <Trophy size={14} />
+                          <IconTrophy size={14} />
                           Retry Submit
                         </button>
                       )}
@@ -582,7 +582,7 @@ export default function ReactionTestPage() {
                         onClick={startGame}
                         className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 transition-colors"
                       >
-                        <RotateCcw size={14} />
+                        <IconRotate2 size={14} />
                         Play Again
                       </button>
                     </div>

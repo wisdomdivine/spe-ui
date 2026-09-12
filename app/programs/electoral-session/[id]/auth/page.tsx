@@ -6,19 +6,19 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/Header";
 import {
-  ArrowLeft,
-  ShieldCheck,
-  Vote,
-  Fingerprint,
-  Mail,
-  Hash,
-  Loader2,
-  CheckCircle,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  Lock,
-} from "lucide-react";
+  IconArrowLeft,
+  IconShieldCheck,
+  IconChecklist,
+  IconFingerprint,
+  IconMail,
+  IconHash,
+  IconLoader2,
+  IconCircleCheck,
+  IconAlertCircle,
+  IconEye,
+  IconEyeOff,
+  IconLock,
+} from "@tabler/icons-react";
 
 export default function ElectionAuthPage() {
   const params = useParams();
@@ -206,7 +206,7 @@ export default function ElectionAuthPage() {
             href="/programs/electoral-session"
             className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-gray-400 hover:text-blue-600 transition-colors"
           >
-            <ArrowLeft size={16} /> Back to Elections
+            <IconArrowLeft size={16} /> Back to Elections
           </Link>
 
           {/* Card */}
@@ -220,7 +220,7 @@ export default function ElectionAuthPage() {
             <div className="bg-gradient-to-br from-blue-600 to-blue-700 px-8 py-8 text-white">
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
-                  <Vote size={20} />
+                  <IconChecklist size={20} />
                 </div>
                 <span className="text-xs font-bold tracking-[0.15em] uppercase text-blue-200">Voter Verification</span>
               </div>
@@ -253,7 +253,7 @@ export default function ElectionAuthPage() {
                           Matric Number
                         </label>
                         <div className="relative">
-                          <Hash size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                          <IconHash size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
                           <input
                             type="text"
                             value={matric}
@@ -267,7 +267,7 @@ export default function ElectionAuthPage() {
 
                       {error && (
                         <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
-                          <AlertCircle size={14} /> {error}
+                          <IconAlertCircle size={14} /> {error}
                         </div>
                       )}
 
@@ -277,10 +277,10 @@ export default function ElectionAuthPage() {
                         className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 disabled:opacity-50"
                       >
                         {loading ? (
-                          <Loader2 size={18} className="animate-spin" />
+                          <IconLoader2 size={18} className="animate-spin" />
                         ) : (
                           <>
-                            <Mail size={16} /> Send Verification Code
+                            <IconMail size={16} /> Send Verification Code
                           </>
                         )}
                       </button>
@@ -305,7 +305,7 @@ export default function ElectionAuthPage() {
                         We sent a 6-digit code to{" "}
                         <button onClick={() => setShowEmail(!showEmail)} className="inline-flex items-center gap-1 text-blue-600 font-semibold">
                           {showEmail ? email : maskedEmail}
-                          {showEmail ? <EyeOff size={11} /> : <Eye size={11} />}
+                          {showEmail ? <IconEyeOff size={11} /> : <IconEye size={11} />}
                         </button>
                       </p>
                     </div>
@@ -334,7 +334,7 @@ export default function ElectionAuthPage() {
 
                       {error && (
                         <div className="flex items-center gap-2 rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
-                          <AlertCircle size={14} /> {error}
+                          <IconAlertCircle size={14} /> {error}
                         </div>
                       )}
 
@@ -344,10 +344,10 @@ export default function ElectionAuthPage() {
                         className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 disabled:opacity-50"
                       >
                         {loading ? (
-                          <Loader2 size={18} className="animate-spin" />
+                          <IconLoader2 size={18} className="animate-spin" />
                         ) : (
                           <>
-                            <Fingerprint size={16} /> Verify &amp; Enter Booth
+                            <IconFingerprint size={16} /> Verify &amp; Enter Booth
                           </>
                         )}
                       </button>
@@ -380,13 +380,13 @@ export default function ElectionAuthPage() {
           >
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-400">
-                <ShieldCheck size={13} className="text-emerald-500" /> Anonymous Voting
+                <IconShieldCheck size={13} className="text-emerald-500" /> Anonymous Voting
               </div>
               <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-400">
-                <Lock size={13} className="text-blue-500" /> Encrypted
+                <IconLock size={13} className="text-blue-500" /> Encrypted
               </div>
               <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-400">
-                <CheckCircle size={13} className="text-amber-500" /> One-Time Vote
+                <IconCircleCheck size={13} className="text-amber-500" /> One-Time Vote
               </div>
             </div>
             <p className="text-[11px] text-gray-300 font-medium max-w-xs">

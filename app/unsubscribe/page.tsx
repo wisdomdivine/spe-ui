@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { MailX, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { IconMailX, IconCircleCheck, IconAlertCircle, IconLoader2 } from "@tabler/icons-react";
 
 function UnsubscribeContent() {
   const params = useSearchParams();
@@ -60,11 +60,11 @@ function UnsubscribeContent() {
       >
         <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-6">
           {status === "success" ? (
-            <CheckCircle className="w-8 h-8 text-green-600" />
+            <IconCircleCheck className="w-8 h-8 text-green-600" />
           ) : status === "error" ? (
-            <AlertCircle className="w-8 h-8 text-red-500" />
+            <IconAlertCircle className="w-8 h-8 text-red-500" />
           ) : (
-            <MailX className="w-8 h-8 text-gray-600" />
+            <IconMailX className="w-8 h-8 text-gray-600" />
           )}
         </div>
 
@@ -90,7 +90,7 @@ function UnsubscribeContent() {
             <h1 className="text-xl font-black text-gray-900 mb-2">
               Unsubscribing...
             </h1>
-            <Loader2 className="w-6 h-6 text-gray-400 animate-spin mx-auto mt-4" />
+            <IconLoader2 className="w-6 h-6 text-gray-400 animate-spin mx-auto mt-4" />
           </>
         )}
 
@@ -136,7 +136,7 @@ export default function UnsubscribePage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+          <IconLoader2 className="w-6 h-6 text-gray-400 animate-spin" />
         </div>
       }
     >

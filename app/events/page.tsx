@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useEffect, useState } from "react";
-import { Calendar, Clock, MapPin } from "lucide-react";
+import { IconCalendar, IconClock, IconMapPin } from "@tabler/icons-react";
 
 interface EventItem {
   id: string;
@@ -283,18 +283,18 @@ export default function EventsPage() {
                   </h3>
                   <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider">
                     <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3.5 py-1.5 rounded-full border border-blue-100/50">
-                      <Calendar size={13} className="shrink-0" />
+                      <IconCalendar size={13} className="shrink-0" />
                       {formatDateNice(event.date)}
                     </span>
                     {event.time && (
                       <span className="inline-flex items-center gap-1.5 bg-gray-50 text-gray-600 px-3.5 py-1.5 rounded-full border border-gray-100">
-                        <Clock size={13} className="shrink-0" />
+                        <IconClock size={13} className="shrink-0" />
                         {event.time}
                       </span>
                     )}
                     {event.location && (
                       <span className="inline-flex items-center gap-1.5 bg-gray-50 text-gray-600 px-3.5 py-1.5 rounded-full border border-gray-100">
-                        <MapPin size={13} className="shrink-0" />
+                        <IconMapPin size={13} className="shrink-0" />
                         {event.location}
                       </span>
                     )}

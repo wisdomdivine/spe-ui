@@ -7,7 +7,7 @@ import Footer from "@/components/Footer";
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { ThumbsUp, Share2, Sparkles, Gamepad2, Calculator, Compass, StickyNote, Zap, Smile } from "lucide-react";
+import { IconThumbUp, IconShare, IconSparkles, IconDeviceGamepad2, IconCalculator, IconCompass, IconNote, IconBolt, IconMoodSmile } from "@tabler/icons-react";
 
 interface BlogPost {
   id: string;
@@ -298,7 +298,7 @@ export default function BlogSlugPage() {
                       : "bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:shadow-lg"
                   }`}
                 >
-                  <ThumbsUp
+                  <IconThumbUp
                     size={22}
                     className={`transition-transform duration-300 ${liked ? "fill-white" : "group-hover:scale-110"}`}
                     fill={liked ? "currentColor" : "none"}
@@ -322,7 +322,7 @@ export default function BlogSlugPage() {
                   }}
                   className="group flex items-center gap-3 px-8 py-4 rounded-full border-2 border-gray-200 bg-white text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:shadow-lg transition-all duration-300"
                 >
-                  <Share2 size={22} className="transition-transform duration-300 group-hover:scale-110" />
+                  <IconShare size={22} className="transition-transform duration-300 group-hover:scale-110" />
                   <span id="share-toast" className="text-lg font-bold">Share</span>
                 </motion.button>
               </div>
@@ -384,11 +384,11 @@ export default function BlogSlugPage() {
 
 /* ── Resources Sidebar Ad ── */
 const RESOURCE_ITEMS = [
-  { title: "PetroCalc Suite", desc: "5 engineering calculators", href: "/programs/resources/petro-calc", icon: Calculator, color: "text-blue-600 bg-blue-50" },
-  { title: "Career Compass", desc: "Explore 20+ career paths", href: "/programs/resources/career-compass", icon: Compass, color: "text-emerald-600 bg-emerald-50" },
-  { title: "Sticky Wall", desc: "Community message board", href: "/programs/resources/sticky-wall", icon: StickyNote, color: "text-amber-600 bg-amber-50" },
-  { title: "Reaction Test", desc: "Test your reflexes", href: "/programs/resources/reaction-test", icon: Zap, color: "text-rose-600 bg-rose-50" },
-  { title: "Emoji Decode", desc: "Crack the emoji code", href: "/programs/resources/emoji-decode", icon: Smile, color: "text-violet-600 bg-violet-50" },
+  { title: "PetroCalc Suite", desc: "5 engineering calculators", href: "/programs/resources/petro-calc", icon: IconCalculator, color: "text-blue-600 bg-blue-50" },
+  { title: "Career Compass", desc: "Explore 20+ career paths", href: "/programs/resources/career-compass", icon: IconCompass, color: "text-emerald-600 bg-emerald-50" },
+  { title: "Sticky Wall", desc: "Community message board", href: "/programs/resources/sticky-wall", icon: IconNote, color: "text-amber-600 bg-amber-50" },
+  { title: "Reaction Test", desc: "Test your reflexes", href: "/programs/resources/reaction-test", icon: IconBolt, color: "text-rose-600 bg-rose-50" },
+  { title: "Emoji Decode", desc: "Crack the emoji code", href: "/programs/resources/emoji-decode", icon: IconMoodSmile, color: "text-violet-600 bg-violet-50" },
 ];
 
 function ResourcesSidebar() {
@@ -396,7 +396,7 @@ function ResourcesSidebar() {
     <div className="rounded-3xl border border-gray-100 bg-gradient-to-b from-white to-gray-50/50 p-6 shadow-sm">
       <div className="flex items-center gap-2.5 mb-5">
         <div className="p-2 rounded-xl bg-indigo-50">
-          <Sparkles size={16} className="text-indigo-600" />
+          <IconSparkles size={16} className="text-indigo-600" />
         </div>
         <div>
           <p className="text-xs font-black text-gray-900 uppercase tracking-widest">Interactive Tools</p>
@@ -428,7 +428,7 @@ function ResourcesSidebar() {
         href="/programs/resources"
         className="mt-5 flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 transition-colors"
       >
-        <Gamepad2 size={16} />
+        <IconDeviceGamepad2 size={16} />
         Explore All Resources
       </a>
     </div>
