@@ -30,13 +30,26 @@ export default function BlogPage() {
   const [total, setTotal] = useState(0);
   const [activeTag, setActiveTag] = useState<string | null>(null);
 
+  const getTags = (rawTags: any): string[] => {
+    if (!rawTags) return [];
+    if (Array.isArray(rawTags)) return rawTags.filter((t) => typeof t === "string" && t.trim().length > 0);
+    if (typeof rawTags === "string") {
+      return rawTags
+        .replace(/^\{|\}$/g, "")
+        .split(",")
+        .map((t) => t.trim().replace(/^"|"$/g, ""))
+        .filter(Boolean);
+    }
+    return [];
+  };
+
   // Collect all unique tags from loaded blogs
-  const allTags = Array.from(new Set(blogs.flatMap(b => b.tags || [])));
+  const allTags = Array.from(new Set((blogs || []).flatMap((b) => getTags(b.tags))));
 
   // Filter blogs by active tag (client-side)
   const filteredBlogs = activeTag
-    ? blogs.filter(b => b.tags?.includes(activeTag))
-    : blogs;
+    ? (blogs || []).filter((b) => getTags(b.tags).includes(activeTag))
+    : (blogs || []);
 
   useEffect(() => {
     fetchBlogs();
@@ -44,19 +57,29 @@ export default function BlogPage() {
 
   const fetchBlogs = async () => {
     setLoading(true);
-    const from = (page - 1) * PER_PAGE;
-    const to = from + PER_PAGE - 1;
+    try {
+      const from = (page - 1) * PER_PAGE;
+      const to = from + PER_PAGE - 1;
 
-    const { data, count } = await supabase
-      .from("blog_posts")
-      .select("id, title, description, cover_image_url, slug, category, tags, author_name, author_image_url, created_at", { count: "exact" })
-      .eq("status", "Published")
-      .order("created_at", { ascending: false })
-      .range(from, to);
+      const { data, count, error } = await supabase
+        .from("blog_posts")
+        .select("id, title, description, cover_image_url, slug, category, tags, author_name, author_image_url, created_at", { count: "exact" })
+        .eq("status", "Published")
+        .order("created_at", { ascending: false })
+        .range(from, to);
 
-    setBlogs(data || []);
-    setTotal(count || 0);
-    setLoading(false);
+      if (error) {
+        console.error("Error fetching blogs:", error);
+      }
+      setBlogs(data || []);
+      setTotal(count || 0);
+    } catch (err) {
+      console.error("Failed to fetch blogs:", err);
+      setBlogs([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
@@ -142,13 +165,13 @@ export default function BlogPage() {
                         {blog.cover_image_url ? (
                           <Image
                             src={blog.cover_image_url}
-                            alt={blog.title}
+                            alt={blog.title || "Blog post"}
                             fill
                             className="object-contain"
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100">
-                            <span className="text-4xl font-black text-blue-200">{blog.title.charAt(0)}</span>
+                            <span className="text-4xl font-black text-blue-200">{(blog.title || "S").charAt(0)}</span>
                           </div>
                         )}
                         {/* Category Badge */}
@@ -161,27 +184,31 @@ export default function BlogPage() {
 
                       <div className="flex flex-col p-6 pt-8">
                         <h3 className="mb-4 text-2xl font-bold leading-tight text-gray-900 line-clamp-2 md:text-[26px]">
-                          {blog.title}
+                          {blog.title || "Untitled"}
                         </h3>
                         <p className="mb-4 text-sm font-medium leading-relaxed text-gray-500 line-clamp-3">
-                          {blog.description}
+                          {blog.description || ""}
                         </p>
 
                         {/* Tags on card */}
-                        {blog.tags && blog.tags.length > 0 && (
-                          <div className="mb-4 flex flex-wrap gap-1.5">
-                            {blog.tags.slice(0, 3).map((tag) => (
-                              <span key={tag} className="rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold text-blue-500 uppercase tracking-wider">
-                                {tag}
-                              </span>
-                            ))}
-                            {blog.tags.length > 3 && (
-                              <span className="rounded-full bg-gray-50 px-3 py-1 text-[10px] font-bold text-gray-400">
-                                +{blog.tags.length - 3}
-                              </span>
-                            )}
-                          </div>
-                        )}
+                        {(() => {
+                          const cardTags = getTags(blog.tags);
+                          if (!cardTags.length) return null;
+                          return (
+                            <div className="mb-4 flex flex-wrap gap-1.5">
+                              {cardTags.slice(0, 3).map((tag, tIdx) => (
+                                <span key={`${tag}-${tIdx}`} className="rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold text-blue-500 uppercase tracking-wider">
+                                  {tag}
+                                </span>
+                              ))}
+                              {cardTags.length > 3 && (
+                                <span className="rounded-full bg-gray-50 px-3 py-1 text-[10px] font-bold text-gray-400">
+                                  +{cardTags.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
                         
                         <div className="mt-auto flex items-center gap-2 text-sm font-bold text-[#2563eb]">
                           <span>Read More</span>
