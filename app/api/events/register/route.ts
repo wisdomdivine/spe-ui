@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { sendTicketEmail, sendAdminNotificationEmail } from "@/lib/mailer";
+import { sendTicketEmail } from "@/lib/mailer";
 
 // Initialize server-only Supabase client to bypass RLS policies securely
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -114,23 +114,6 @@ export async function POST(req: NextRequest) {
       console.log("Successfully sent ticket email to:", email);
     } catch (err) {
       console.error("Failed to send ticket email:", err);
-    }
-
-    // Trigger admin notification email
-    try {
-      await sendAdminNotificationEmail({
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        department: department.trim(),
-        isSpeMember: is_spe_member,
-        isMembershipActive: is_spe_member ? is_membership_active : null,
-        whatsappNumber: whatsapp_number.trim(),
-        accessCode,
-        selectedDays: daysString,
-      });
-      console.log("Successfully sent admin notification email to ewansihapraise03@gmail.com");
-    } catch (err) {
-      console.error("Failed to send admin notification email:", err);
     }
 
     return NextResponse.json({ success: true, id: data.id, access_code: accessCode }, { status: 201 });

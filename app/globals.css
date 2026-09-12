@@ -19,6 +19,17 @@
   }
 }
 
+/* ── Remove all shadows across the entire website ── */
+*, *::before, *::after {
+  box-shadow: none !important;
+  --tw-shadow: 0 0 #0000 !important;
+  --tw-shadow-colored: 0 0 #0000 !important;
+  --tw-drop-shadow: none !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+  --tw-inset-shadow: 0 0 #0000 !important;
+  --tw-inset-ring-shadow: 0 0 #0000 !important;
+}
+
 html, body {
   overflow-x: hidden;
   width: 100%;
