@@ -325,7 +325,7 @@ export default function Home() {
               whileInView={{ opacity: 1, x: 0, rotate: 0, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-              className="relative aspect-[4/3] overflow-hidden rounded-[40px] shadow-[0_32px_64px_rgba(0,0,0,0.1)]"
+              className="relative aspect-[4/3] overflow-hidden rounded-[40px] border border-gray-100"
             >
               <Image
                 src="/about_us.png"
@@ -444,7 +444,7 @@ export default function Home() {
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
               className="relative order-1 lg:order-2"
             >
-              <div className="relative aspect-[5/4] overflow-hidden rounded-[40px] shadow-[0_32px_64px_rgba(0,0,0,0.1)]">
+              <div className="relative aspect-[5/4] overflow-hidden rounded-[40px] border border-gray-100">
                 <Image
                   src="/our_purpose.png"
                   alt="SPEUI Student Presenting"
@@ -609,7 +609,7 @@ export default function Home() {
               transition={{ duration: 0.8 }}
               className="relative w-full lg:w-1/2"
             >
-              <div className="relative aspect-[1.5/1] overflow-hidden rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
+              <div className="relative aspect-[1.5/1] overflow-hidden rounded-[32px] border border-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
                 <Image
                   src="/what_next.png"
                   alt="Students at an event"
@@ -624,7 +624,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="relative mt-8 rounded-[24px] bg-black p-6 text-white shadow-2xl sm:p-8 lg:absolute lg:bottom-[-40px] lg:left-[-48px] lg:mt-0 lg:w-auto lg:max-w-[540px]"
+                className="relative mt-8 rounded-[24px] bg-black p-6 text-white border border-white/15 shadow-2xl sm:p-8 lg:absolute lg:bottom-[-40px] lg:left-[-48px] lg:mt-0 lg:w-auto lg:max-w-[540px]"
               >
                 <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
                   <p className="text-sm font-medium leading-relaxed md:w-1/2">
