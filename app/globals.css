@@ -19,7 +19,7 @@
   }
 }
 
-/* ── Remove all shadows across the entire website ── */
+/* ── Remove all shadows across the entire website and apply faint borders ── */
 *, *::before, *::after {
   box-shadow: none !important;
   --tw-shadow: 0 0 #0000 !important;
@@ -28,6 +28,10 @@
   --tw-ring-shadow: 0 0 #0000 !important;
   --tw-inset-shadow: 0 0 #0000 !important;
   --tw-inset-ring-shadow: 0 0 #0000 !important;
+}
+
+[class*="shadow"]:not([class*="border-"]):not(button):not(a):not(input):not(span):not(svg) {
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 html, body {
