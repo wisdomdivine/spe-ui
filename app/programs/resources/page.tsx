@@ -269,8 +269,32 @@ function TimetableIllo() {
   );
 }
 
+/** Gamepad and live wireless signals */
+function ShowdownIllo() {
+  return (
+    <svg viewBox="0 0 80 56" fill="none" className="w-full h-auto">
+      <rect x="8" y="10" width="64" height="38" rx="6" fill="#2563EB" opacity="0.06" stroke="#2563EB" strokeWidth="1" />
+      <rect x="22" y="20" width="36" height="18" rx="9" fill="#2563EB" opacity="0.15" stroke="#2563EB" strokeWidth="1.5" />
+      <line x1="31" y1="26" x2="31" y2="32" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" />
+      <line x1="28" y1="29" x2="34" y2="29" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="46" cy="27" r="1.5" fill="#2563EB" />
+      <circle cx="50" cy="30" r="1.5" fill="#2563EB" />
+      <path d="M37 14C39 12 41 12 43 14" stroke="#2563EB" strokeWidth="1.2" strokeLinecap="round" opacity="0.4" />
+      <path d="M35 11C38 8 42 8 45 11" stroke="#2563EB" strokeWidth="1.2" strokeLinecap="round" opacity="0.25" />
+    </svg>
+  );
+}
+
 /* ── Tool definitions ───────────────────────────────────── */
 const tools = [
+  {
+    title: "SPE Showdown",
+    description:
+      "Live multiplayer quiz arena. Join competitions from your phone with a 6-digit Game PIN, answer fast, and climb the live standings.",
+    href: "/programs/resources/showdown",
+    Illustration: ShowdownIllo,
+    accent: "text-blue-600",
+  },
   {
     title: "PetroCalc Suite",
     description:

@@ -1,0 +1,5 @@
+{
+  "name": "spe-showdown",
+  "main": "party/index.ts",
+  "compatibilityDate": "2026-09-01"
+}
