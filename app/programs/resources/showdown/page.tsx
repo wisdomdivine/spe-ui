@@ -38,10 +38,17 @@ export default function ShowdownResourcePage() {
               <div className="flex flex-col sm:flex-row items-center gap-3">
                 <Link
                   href="/showdown"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 hover:bg-blue-700 px-7 py-4 text-xs font-bold text-white transition-colors"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 hover:bg-blue-700 px-7 py-4 text-xs font-bold text-white transition-colors cursor-pointer"
                 >
                   Join Live Game
                   <IconArrowRight size={14} />
+                </Link>
+                <Link
+                  href="/showdown/host"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 px-7 py-4 text-xs font-bold text-gray-800 transition-colors cursor-pointer"
+                >
+                  <IconDeviceGamepad2 size={16} className="text-blue-600" />
+                  Create / Host Game
                 </Link>
               </div>
             </div>
@@ -97,12 +104,20 @@ export default function ShowdownResourcePage() {
                 Jump straight into the arena controller.
               </p>
             </div>
-            <Link
-              href="/showdown"
-              className="px-6 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white transition-colors shrink-0"
-            >
-              Enter Arena
-            </Link>
+            <div className="flex items-center gap-3 shrink-0">
+              <Link
+                href="/showdown/host"
+                className="px-5 py-3.5 rounded-2xl bg-neutral-800 hover:bg-neutral-700 text-xs font-bold text-white transition-colors cursor-pointer"
+              >
+                Host / Create Quiz
+              </Link>
+              <Link
+                href="/showdown"
+                className="px-6 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white transition-colors shrink-0 cursor-pointer"
+              >
+                Enter Arena
+              </Link>
+            </div>
           </div>
         </div>
       </main>

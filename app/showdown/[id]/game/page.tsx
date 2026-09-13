@@ -59,7 +59,7 @@ interface RoomState {
 
 export default function ShowdownGamePage() {
   const params = useParams();
-  const pin = (params?.pin as string) || "";
+  const pin = (params?.id as string) || (params?.pin as string) || "";
   const router = useRouter();
 
   const [nickname, setNickname] = useState<string>("");

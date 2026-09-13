@@ -40,7 +40,7 @@ function PinEntryContent() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFF] text-gray-900 flex flex-col p-4 sm:p-6 select-none font-sans">
-      {/* Top Header with Back Button */}
+      {/* Top Header with Back Button and Host Link */}
       <div className="w-full max-w-md mx-auto flex items-center justify-between pt-2 pb-4">
         <Link
           href="/programs/resources"
@@ -48,6 +48,12 @@ function PinEntryContent() {
         >
           <IconArrowLeft size={14} />
           <span>Back to Resources</span>
+        </Link>
+        <Link
+          href="/showdown/host"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-gray-200 text-xs font-bold text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+        >
+          <span>Host / Create Game</span>
         </Link>
       </div>
 
@@ -99,14 +105,23 @@ function PinEntryContent() {
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={pin.length < 4}
-              className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-black uppercase tracking-widest text-white transition-all flex items-center justify-center gap-2"
-            >
-              Enter Arena
-              <IconArrowRight size={14} />
-            </button>
+            <div className="space-y-2 pt-1">
+              <button
+                type="submit"
+                disabled={pin.length < 4}
+                className="w-full py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-black uppercase tracking-widest text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                Enter Arena
+                <IconArrowRight size={14} />
+              </button>
+
+              <Link
+                href="/showdown/host"
+                className="w-full py-3 rounded-2xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-xs font-bold text-gray-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                Host or Create a Quiz
+              </Link>
+            </div>
           </form>
         </motion.div>
       </div>
