@@ -14,9 +14,11 @@ import {
   IconAward,
   IconTag,
   IconPhoto,
+  IconFileSpreadsheet,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { OPTION_COLORS } from "@/lib/showdown";
+import ExcelQuestionUploadModal from "@/components/ExcelQuestionUploadModal";
 
 export interface QuestionDraft {
   id?: string;
@@ -219,8 +221,20 @@ export default function QuizEditorForm({ initialQuiz, isEdit = false }: QuizEdit
   const [customPointsMode, setCustomPointsMode] = useState<Record<number, boolean>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [showExcelModal, setShowExcelModal] = useState(false);
 
   const activeQ = questions[activeQIndex] || questions[0];
+
+  const handleExcelImport = (importedQuestions: QuestionDraft[], mode: "replace" | "append") => {
+    if (mode === "replace") {
+      setQuestions(importedQuestions);
+      setActiveQIndex(0);
+    } else {
+      const nextList = [...questions, ...importedQuestions];
+      setQuestions(nextList);
+      setActiveQIndex(questions.length);
+    }
+  };
 
   const updateActiveQuestion = (patch: Partial<QuestionDraft>) => {
     setQuestions((prev) =>
@@ -340,7 +354,15 @@ export default function QuizEditorForm({ initialQuiz, isEdit = false }: QuizEdit
             </h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setShowExcelModal(true)}
+              className="inline-flex items-center gap-1.5 px-5 py-3 rounded-2xl border border-gray-200 bg-white text-xs font-bold text-gray-800 hover:bg-gray-50 transition-colors cursor-pointer"
+            >
+              <IconFileSpreadsheet size={16} className="text-green-600" />
+              <span>Import Excel / CSV</span>
+            </button>
             <Link
               href="/showdown/host"
               className="px-5 py-3 rounded-2xl border border-gray-200 bg-white text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
@@ -426,13 +448,23 @@ export default function QuizEditorForm({ initialQuiz, isEdit = false }: QuizEdit
                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
                   Questions ({questions.length})
                 </span>
-                <button
-                  type="button"
-                  onClick={addQuestion}
-                  className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-blue-600 hover:text-blue-700 cursor-pointer"
-                >
-                  <IconPlus size={14} /> Add
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowExcelModal(true)}
+                    className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-green-600 hover:text-green-700 cursor-pointer"
+                    title="Import questions from spreadsheet"
+                  >
+                    <IconFileSpreadsheet size={13} /> Excel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={addQuestion}
+                    className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-blue-600 hover:text-blue-700 cursor-pointer"
+                  >
+                    <IconPlus size={14} /> Add
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
@@ -715,6 +747,13 @@ export default function QuizEditorForm({ initialQuiz, isEdit = false }: QuizEdit
           </div>
         </div>
       </div>
+      {/* Excel Bulk Upload Modal */}
+      <ExcelQuestionUploadModal
+        isOpen={showExcelModal}
+        onClose={() => setShowExcelModal(false)}
+        onImport={handleExcelImport}
+        existingCount={questions.length}
+      />
     </div>
   );
 }
