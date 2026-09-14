@@ -5,11 +5,12 @@ import { supabase } from "@/lib/supabase";
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/leaderboard?game=reaction|emoji&limit=50
+ * GET /api/leaderboard?game=reaction|emoji|stacker&mode=classic|decoy|grid|survival|blitz|hardcore&limit=50
  */
 export async function GET(req: NextRequest) {
   try {
     const game = req.nextUrl.searchParams.get("game");
+    const mode = req.nextUrl.searchParams.get("mode");
     const limit = Math.min(Number(req.nextUrl.searchParams.get("limit") || 50), 100);
 
     if (!game || !["reaction", "emoji", "stacker"].includes(game)) {
@@ -17,12 +18,19 @@ export async function GET(req: NextRequest) {
     }
 
     // reaction = lower is better (ascending), emoji/stacker = higher is better (descending)
-    const ascending = game === "reaction";
+    // Note: in reaction survival mode, streak score is higher is better if scored by rounds
+    const ascending = game === "reaction" && mode !== "survival";
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("leaderboard")
       .select("*")
-      .eq("game", game)
+      .eq("game", game);
+
+    if (mode && mode !== "all") {
+      query = query.eq("mode", mode);
+    }
+
+    const { data, error } = await query
       .order("score", { ascending })
       .limit(limit);
 
@@ -42,7 +50,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { game, player_name, score } = body;
+    const { game, player_name, score, mode = "classic", difficulty = "normal", details = {} } = body;
 
     if (!game || !["reaction", "emoji", "stacker"].includes(game)) {
       return NextResponse.json({ error: "game must be 'reaction', 'emoji', or 'stacker'" }, { status: 400 });
@@ -56,13 +64,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "score must be a positive number" }, { status: 400 });
     }
 
+    const insertPayload: Record<string, any> = {
+      game,
+      player_name: player_name.trim().slice(0, 30),
+      score,
+      mode: typeof mode === "string" ? mode.slice(0, 50) : "classic",
+      difficulty: typeof difficulty === "string" ? difficulty.slice(0, 50) : "normal",
+      details: typeof details === "object" && details !== null ? details : {},
+    };
+
     const { data, error } = await supabase
       .from("leaderboard")
-      .insert({
-        game,
-        player_name: player_name.trim().slice(0, 30),
-        score,
-      })
+      .insert(insertPayload)
       .select()
       .single();
 
