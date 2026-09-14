@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import usePartySocket from "partysocket/react";
 import { motion } from "framer-motion";
@@ -10,12 +10,16 @@ import {
   IconLoader2,
   IconCircleCheck,
   IconCheck,
+  IconRefresh,
+  IconAlertCircle,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import ShowdownCharacter, {
   SHOWDOWN_CHARACTERS,
   CharacterType,
 } from "@/components/ShowdownCharacter";
+import NetworkStatusBadge from "@/components/NetworkStatusBadge";
+import { useNetworkStatus } from "@/lib/hooks/useNetworkStatus";
 import { PARTYKIT_HOST, CHARACTER_SKINS } from "@/lib/showdown";
 
 interface RoomState {
@@ -37,7 +41,19 @@ export default function ShowdownJoinPage() {
   const [hasJoined, setHasJoined] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("Connecting to live arena...");
   const [roomState, setRoomState] = useState<RoomState | null>(null);
+
+  const { isOnline } = useNetworkStatus();
+  const retryCountRef = useRef(0);
+  const retryTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const clearRetryTimer = () => {
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+  };
 
   const socket = usePartySocket({
     host: PARTYKIT_HOST,
@@ -49,12 +65,14 @@ export default function ShowdownJoinPage() {
           setRoomState(msg.state);
 
           if (msg.state && msg.state.isInitialized === false) {
+            clearRetryTimer();
             setHasJoined(false);
+            setLoading(false);
             sessionStorage.removeItem(`showdown_nick_${pin}`);
             sessionStorage.removeItem(`showdown_avatar_${pin}`);
             sessionStorage.removeItem(`showdown_color_${pin}`);
             sessionStorage.removeItem(`showdown_playerId_${pin}`);
-            setError("Game PIN not found or session has ended.");
+            setError("Game PIN not found or session has ended. Check the PIN on the host screen.");
             return;
           }
 
@@ -69,6 +87,7 @@ export default function ShowdownJoinPage() {
             router.push(`/showdown/${pin}/game`);
           }
         } else if (msg.type === "JOIN_CONFIRMED" || msg.type === "JOIN_SUCCESS") {
+          clearRetryTimer();
           setLoading(false);
           setHasJoined(true);
           setError("");
@@ -79,6 +98,7 @@ export default function ShowdownJoinPage() {
             sessionStorage.setItem(`showdown_playerId_${pin}`, msg.playerId);
           }
         } else if (msg.type === "HOST_DISCONNECTED") {
+          clearRetryTimer();
           setLoading(false);
           setHasJoined(false);
           sessionStorage.removeItem(`showdown_nick_${pin}`);
@@ -90,14 +110,17 @@ export default function ShowdownJoinPage() {
             router.push("/showdown");
           }, 2000);
         } else if (msg.type === "JOIN_ERROR" || msg.type === "ERROR") {
+          clearRetryTimer();
           setLoading(false);
           setHasJoined(false);
           sessionStorage.removeItem(`showdown_nick_${pin}`);
           sessionStorage.removeItem(`showdown_avatar_${pin}`);
           sessionStorage.removeItem(`showdown_color_${pin}`);
           sessionStorage.removeItem(`showdown_playerId_${pin}`);
-          setError(msg.message || "Failed to join room.");
+          setError(msg.message || "Unable to enter arena. Please try again.");
         } else if (msg.type === "PLAYER_KICKED") {
+          clearRetryTimer();
+          setLoading(false);
           setHasJoined(false);
           sessionStorage.removeItem(`showdown_nick_${pin}`);
           sessionStorage.removeItem(`showdown_avatar_${pin}`);
@@ -111,8 +134,7 @@ export default function ShowdownJoinPage() {
     },
     onError(err) {
       console.error("Socket connection error:", err);
-      setLoading(false);
-      setError("Unable to connect to live game server. Please try again.");
+      handleConnectionFailure();
     },
   });
 
@@ -153,9 +175,51 @@ export default function ShowdownJoinPage() {
     }
   }, [roomState?.status, hasJoined, pin, router]);
 
-  const handleJoin = (e: React.FormEvent) => {
-    e.preventDefault();
+  const sendJoinMessage = (cleanNick: string) => {
+    socket.send(
+      JSON.stringify({
+        type: "PLAYER_JOIN",
+        nickname: cleanNick,
+        avatarType: selectedType,
+        avatarColor: selectedColor,
+      })
+    );
+  };
+
+  const handleConnectionFailure = () => {
+    const cleanNick = nickname.trim();
+    if (retryCountRef.current < 2 && cleanNick) {
+      retryCountRef.current += 1;
+      const nextAttempt = retryCountRef.current;
+      setLoadingText(`Connection slow. Retrying (${nextAttempt}/2)...`);
+
+      clearRetryTimer();
+      retryTimerRef.current = setTimeout(() => {
+        try {
+          sendJoinMessage(cleanNick);
+          // Set a timeout for this retry attempt as well
+          retryTimerRef.current = setTimeout(() => {
+            handleConnectionFailure();
+          }, 4500);
+        } catch {
+          handleConnectionFailure();
+        }
+      }, 1500);
+    } else {
+      clearRetryTimer();
+      setLoading(false);
+      setError("Network hiccup! We couldn't connect to the live arena. Please check your internet and retry.");
+    }
+  };
+
+  const handleJoin = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setError("");
+
+    if (!isOnline) {
+      setError("You appear to be offline. Please check your internet connection.");
+      return;
+    }
 
     if (roomState && roomState.isInitialized === false) {
       setError("Game PIN not found or session has ended. Please check the PIN on the host screen.");
@@ -173,37 +237,25 @@ export default function ShowdownJoinPage() {
     }
 
     setLoading(true);
+    setLoadingText("Connecting to live arena...");
+    retryCountRef.current = 0;
+    clearRetryTimer();
 
-    // Timeout safety in case PartyKit server is unreachable
-    const timer = setTimeout(() => {
-      setLoading((curr) => {
-        if (curr) {
-          setError("Connection timeout. Make sure the host has the game open.");
-          return false;
-        }
-        return curr;
-      });
-    }, 6000);
+    // 4.5s Timeout before initiating auto-retry
+    retryTimerRef.current = setTimeout(() => {
+      handleConnectionFailure();
+    }, 4500);
 
     try {
-      socket.send(
-        JSON.stringify({
-          type: "PLAYER_JOIN",
-          nickname: cleanNick,
-          avatarType: selectedType,
-          avatarColor: selectedColor,
-        })
-      );
+      sendJoinMessage(cleanNick);
     } catch (err) {
-      clearTimeout(timer);
-      setLoading(false);
-      setError("Failed to send join request. Please retry.");
+      handleConnectionFailure();
     }
   };
 
   return (
     <div className="min-h-screen bg-[#F8FAFF] text-gray-900 flex flex-col p-4 sm:p-6 select-none font-sans">
-      {/* Top Header with Back Button */}
+      {/* Top Header with Back Button & Network Status */}
       <div className="w-full max-w-md mx-auto flex items-center justify-between pt-2 pb-4">
         <Link
           href="/showdown"
@@ -212,6 +264,9 @@ export default function ShowdownJoinPage() {
           <IconArrowLeft size={14} />
           <span>Change PIN</span>
         </Link>
+
+        {/* Live Network Info Badge */}
+        <NetworkStatusBadge onRetry={() => handleJoin()} />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center -mt-2 pb-10">
@@ -248,9 +303,21 @@ export default function ShowdownJoinPage() {
                 onSubmit={handleJoin}
                 className="w-full bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 space-y-6 text-left"
               >
+                {/* UX-Friendly Connection Error Notice with Retry Button */}
                 {error && (
-                  <div className="p-3 rounded-xl bg-red-50 border border-red-100 text-xs font-bold text-red-600 text-center">
-                    {error}
+                  <div className="p-3.5 rounded-2xl bg-red-50 border border-red-200 text-xs font-semibold text-red-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="flex items-start gap-2">
+                      <IconAlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
+                      <span className="leading-snug">{error}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleJoin()}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[11px] font-black uppercase tracking-wider transition-colors cursor-pointer shrink-0 self-end sm:self-auto"
+                    >
+                      <IconRefresh size={13} />
+                      <span>Retry</span>
+                    </button>
                   </div>
                 )}
 
@@ -351,11 +418,11 @@ export default function ShowdownJoinPage() {
                   {loading ? (
                     <>
                       <IconLoader2 size={16} className="animate-spin" />
-                      Joining...
+                      <span>{loadingText}</span>
                     </>
                   ) : (
                     <>
-                      Join Game
+                      <span>Join Game</span>
                       <IconArrowRight size={14} />
                     </>
                   )}

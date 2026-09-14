@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { IconArrowRight, IconArrowLeft, IconLoader2 } from "@tabler/icons-react";
 import Link from "next/link";
 import ShowdownCharacter from "@/components/ShowdownCharacter";
+import NetworkStatusBadge from "@/components/NetworkStatusBadge";
 
 function PinEntryContent() {
   const router = useRouter();
@@ -40,7 +41,7 @@ function PinEntryContent() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFF] text-gray-900 flex flex-col p-4 sm:p-6 select-none font-sans">
-      {/* Top Header with Back Button and Host Link */}
+      {/* Top Header with Back Button, Host Link and Network Status */}
       <div className="w-full max-w-md mx-auto flex items-center justify-between pt-2 pb-4">
         <Link
           href="/programs/resources"
@@ -49,12 +50,15 @@ function PinEntryContent() {
           <IconArrowLeft size={14} />
           <span>Back to Resources</span>
         </Link>
-        <Link
-          href="/showdown/host"
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-gray-200 text-xs font-bold text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-colors"
-        >
-          <span>Host / Create Game</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <NetworkStatusBadge />
+          <Link
+            href="/showdown/host"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-gray-200 text-xs font-bold text-blue-600 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+          >
+            <span>Host Game</span>
+          </Link>
+        </div>
       </div>
 
       {/* Main Form Center */}

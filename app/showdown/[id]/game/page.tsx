@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import usePartySocket from "partysocket/react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,9 +9,13 @@ import {
   IconX,
   IconCircleCheck,
   IconClock,
+  IconRefresh,
+  IconWifiOff,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import ShowdownCharacter from "@/components/ShowdownCharacter";
+import NetworkStatusBadge from "@/components/NetworkStatusBadge";
+import { useNetworkStatus } from "@/lib/hooks/useNetworkStatus";
 import { PARTYKIT_HOST, OPTION_COLORS } from "@/lib/showdown";
 
 interface Option {
@@ -71,6 +75,8 @@ export default function ShowdownGamePage() {
   const [playerTimeLeft, setPlayerTimeLeft] = useState<number>(20);
   const [roomState, setRoomState] = useState<RoomState | null>(null);
 
+  const { isOnline, quality } = useNetworkStatus();
+
   // Read saved nickname, avatar, and color from session
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -121,8 +127,7 @@ export default function ShowdownGamePage() {
     },
   });
 
-  // Re-join if connection is established
-  useEffect(() => {
+  const sendJoin = useCallback(() => {
     if (nickname && socket.readyState === WebSocket.OPEN) {
       socket.send(
         JSON.stringify({
@@ -133,7 +138,12 @@ export default function ShowdownGamePage() {
         })
       );
     }
-  }, [socket.readyState, nickname, avatarType, avatarColor]);
+  }, [nickname, socket, avatarType, avatarColor]);
+
+  // Re-join if connection is established or when network returns online
+  useEffect(() => {
+    sendJoin();
+  }, [socket.readyState, sendJoin, isOnline]);
 
   // Reset selected option and initialize player timer on new question
   useEffect(() => {
@@ -214,9 +224,10 @@ export default function ShowdownGamePage() {
             className="w-2.5 h-2.5 rounded-full shrink-0"
             style={{ backgroundColor: playerColor }}
           />
-          <span className="text-xs font-black tracking-tight text-white line-clamp-1 max-w-[140px] sm:max-w-none">
+          <span className="text-xs font-black tracking-tight text-white line-clamp-1 max-w-[120px] sm:max-w-none">
             {nickname || "Player"}
           </span>
+          <NetworkStatusBadge variant="minimal" className="ml-1" />
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
@@ -232,6 +243,24 @@ export default function ShowdownGamePage() {
           </div>
         </div>
       </header>
+
+      {/* Offline / Reconnect Banner */}
+      {!isOnline && (
+        <div className="bg-red-950/90 border-b border-red-800 px-4 py-2 text-xs flex items-center justify-between gap-3 text-red-200">
+          <div className="flex items-center gap-2">
+            <IconWifiOff size={15} className="text-red-400 animate-pulse shrink-0" />
+            <span className="font-semibold text-[11px]">Connection weak. Reconnecting...</span>
+          </div>
+          <button
+            type="button"
+            onClick={sendJoin}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-800 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer"
+          >
+            <IconRefresh size={12} />
+            <span>Retry</span>
+          </button>
+        </div>
+      )}
 
       {/* Main Gamepad Area */}
       <main className="flex-1 flex flex-col items-center justify-center p-3 sm:p-6 relative max-w-md mx-auto w-full">
