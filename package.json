@@ -17,6 +17,7 @@
     "next": "16.1.6",
     "nodemailer": "^8.0.5",
     "partykit": "^0.0.115",
+    "partyserver": "^0.5.10",
     "partysocket": "^1.3.0",
     "qrcode.react": "^4.2.0",
     "react": "19.2.3",
@@ -32,6 +33,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.131.2"
   }
 }

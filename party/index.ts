@@ -1,4 +1,10 @@
-import type * as Party from "partykit/server";
+import {
+  Server,
+  routePartykitRequest,
+  type Connection,
+  type ConnectionContext,
+  type WSMessage,
+} from "partyserver";
 
 export type GameState =
   | "LOBBY"
@@ -56,30 +62,35 @@ export interface RoomState {
   correctOptionId: string | number | null;
 }
 
-export default class ShowdownRoom implements Party.Server {
-  room: Party.Room;
-  state: RoomState;
+export class ShowdownRoom extends Server {
+  state!: RoomState;
 
-  constructor(room: Party.Room) {
-    this.room = room;
-    this.state = {
-      pin: room.id,
-      quizTitle: "SPE Showdown",
-      status: "LOBBY",
-      progressionMode: "MANUAL",
-      isPaused: false,
-      pausedAt: 0,
-      currentQuestionIndex: 0,
-      questions: [],
-      players: {},
-      questionStartedAt: 0,
-      answersCount: 0,
-      choiceDistribution: {},
-      correctOptionId: null,
-    };
+  private initState() {
+    if (!this.state) {
+      this.state = {
+        pin: this.name,
+        quizTitle: "SPE Showdown",
+        status: "LOBBY",
+        progressionMode: "MANUAL",
+        isPaused: false,
+        pausedAt: 0,
+        currentQuestionIndex: 0,
+        questions: [],
+        players: {},
+        questionStartedAt: 0,
+        answersCount: 0,
+        choiceDistribution: {},
+        correctOptionId: null,
+      };
+    }
   }
 
-  onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
+  onStart() {
+    this.initState();
+  }
+
+  onConnect(conn: Connection, ctx: ConnectionContext) {
+    this.initState();
     // Send full current state to newly connected client
     conn.send(
       JSON.stringify({
@@ -89,7 +100,8 @@ export default class ShowdownRoom implements Party.Server {
     );
   }
 
-  onClose(conn: Party.Connection) {
+  onClose(conn: Connection) {
+    this.initState();
     // Mark disconnected if it's a player
     if (this.state.players[conn.id]) {
       this.state.players[conn.id].connected = false;
@@ -97,9 +109,11 @@ export default class ShowdownRoom implements Party.Server {
     }
   }
 
-  onMessage(message: string, sender: Party.Connection) {
+  onMessage(conn: Connection, message: WSMessage) {
+    this.initState();
     try {
-      const data = JSON.parse(message);
+      const msgStr = typeof message === "string" ? message : new TextDecoder().decode(message);
+      const data = JSON.parse(msgStr);
 
       switch (data.type) {
         // Host initializes quiz questions
@@ -153,17 +167,17 @@ export default class ShowdownRoom implements Party.Server {
         case "PLAYER_JOIN": {
           const rawNick = (data.nickname || "").trim();
           if (!rawNick) {
-            sender.send(JSON.stringify({ type: "ERROR", message: "Nickname cannot be empty." }));
+            conn.send(JSON.stringify({ type: "ERROR", message: "Nickname cannot be empty." }));
             return;
           }
 
           // Check if nickname is taken by another connected player
           const isTaken = Object.values(this.state.players).some(
-            (p) => p.connected && p.nickname.toLowerCase() === rawNick.toLowerCase() && p.id !== sender.id
+            (p) => p.connected && p.nickname.toLowerCase() === rawNick.toLowerCase() && p.id !== conn.id
           );
 
           if (isTaken) {
-            sender.send(
+            conn.send(
               JSON.stringify({
                 type: "JOIN_ERROR",
                 message: "Nickname is already taken. Please pick another.",
@@ -172,8 +186,8 @@ export default class ShowdownRoom implements Party.Server {
             return;
           }
 
-          this.state.players[sender.id] = {
-            id: sender.id,
+          this.state.players[conn.id] = {
+            id: conn.id,
             nickname: rawNick,
             avatarType: data.avatarType || "blobby",
             avatarColor: data.avatarColor || "#2563EB",
@@ -185,10 +199,10 @@ export default class ShowdownRoom implements Party.Server {
             connected: true,
           };
 
-          sender.send(
+          conn.send(
             JSON.stringify({
               type: "JOIN_CONFIRMED",
-              playerId: sender.id,
+              playerId: conn.id,
               nickname: rawNick,
               avatarType: data.avatarType || "blobby",
               avatarColor: data.avatarColor || "#2563EB",
@@ -227,7 +241,7 @@ export default class ShowdownRoom implements Party.Server {
         case "SUBMIT_ANSWER": {
           if (this.state.status !== "QUESTION" || this.state.isPaused) return;
 
-          const player = this.state.players[sender.id];
+          const player = this.state.players[conn.id];
           if (!player || player.hasAnswered) return;
 
           const currentQ = this.state.questions[this.state.currentQuestionIndex];
@@ -244,7 +258,6 @@ export default class ShowdownRoom implements Party.Server {
           
           let pointsEarned = 0;
           if (isCorrect) {
-            // Normalized scoring: 50% base + up to 50% speed bonus + proportional streak bonus
             const basePoints = typeof currentQ.points === "number" ? currentQ.points : 10;
             if (basePoints === 0) {
               pointsEarned = 0;
@@ -274,7 +287,7 @@ export default class ShowdownRoom implements Party.Server {
           this.state.answersCount = Object.values(this.state.players).filter((p) => p.hasAnswered).length;
 
           // Send confirmation back to player
-          sender.send(
+          conn.send(
             JSON.stringify({
               type: "ANSWER_CONFIRMED",
               isCorrect,
@@ -354,7 +367,7 @@ export default class ShowdownRoom implements Party.Server {
         }
       }
     } catch (err) {
-      console.error("[PartyKit] Error handling message:", err);
+      console.error("[PartyServer] Error handling message:", err);
     }
   }
 
@@ -411,7 +424,6 @@ export default class ShowdownRoom implements Party.Server {
             time_limit: currentQ.time_limit,
             points: currentQ.points,
             order_index: currentQ.order_index,
-            // Options without revealing is_correct to clients during active question
             options: currentQ.options.map((o) => ({
               id: o.id,
               text: o.text,
@@ -439,7 +451,7 @@ export default class ShowdownRoom implements Party.Server {
   }
 
   private broadcastState() {
-    this.room.broadcast(
+    this.broadcast(
       JSON.stringify({
         type: "STATE_UPDATE",
         state: this.getPublicState(),
@@ -447,3 +459,13 @@ export default class ShowdownRoom implements Party.Server {
     );
   }
 }
+
+export default {
+  async fetch(request: Request, env: any): Promise<Response> {
+    const res = await routePartykitRequest(request, env, { cors: true });
+    if (res) return res;
+    return new Response(JSON.stringify({ status: "ok", service: "SPE Showdown Realtime" }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  },
+};
