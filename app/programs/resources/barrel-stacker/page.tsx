@@ -12,6 +12,9 @@ import {
   IconArrowLeft,
   IconLoader2,
   IconLayersIntersect,
+  IconVolume,
+  IconVolumeOff,
+  IconSparkles,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import Header from "@/components/Header";
@@ -21,6 +24,12 @@ import {
   STACKER_QUIT_MOCKS,
   getRandomMock,
 } from "@/lib/game-mocks";
+import {
+  playClickSound,
+  playCorrectChime,
+  playBuzzer,
+  playFanfare,
+} from "@/lib/sound-effects";
 
 /* ------------------------------------------------------------------ */
 /*  Types & Constants                                                  */
@@ -31,6 +40,30 @@ interface Block {
   x: number;
   width: number;
   y: number;
+  colorIdx: number;
+}
+
+interface FallingPiece {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  color: string;
+  vx: number;
+  vy: number;
+  rotation: number;
+  vRot: number;
+  opacity: number;
+}
+
+interface FloatingText {
+  id: number;
+  text: string;
+  x: number;
+  y: number;
+  color: string;
+  opacity: number;
+  scale: number;
 }
 
 interface LeaderboardEntry {
@@ -40,17 +73,24 @@ interface LeaderboardEntry {
   created_at: string;
 }
 
-const CANVAS_WIDTH = 320;
-const CANVAS_HEIGHT = 480;
-const INITIAL_BLOCK_WIDTH = 120;
-const BLOCK_HEIGHT = 20;
-const INITIAL_SPEED = 2.5;
-const SPEED_INCREMENT = 0.15;
-const MAX_SPEED = 8;
-const BARREL_COLORS = [
-  "#2563EB", "#3B82F6", "#1D4ED8", "#1E40AF",
-  "#60A5FA", "#2563EB", "#1E3A8A", "#3B82F6",
-  "#1D4ED8", "#2563EB", "#60A5FA", "#1E40AF",
+const CANVAS_WIDTH = 340;
+const CANVAS_HEIGHT = 520;
+const PLATFORM_HEIGHT = 50;
+const INITIAL_BLOCK_WIDTH = 150;
+const BLOCK_HEIGHT = 24;
+const INITIAL_SPEED = 2.4;
+const SPEED_INCREMENT = 0.12;
+const MAX_SPEED = 7.5;
+
+const BARREL_PALETTES = [
+  { main: "#2563EB", top: "#3B82F6", dark: "#1D4ED8", band: "rgba(255,255,255,0.25)" },
+  { main: "#0284C7", top: "#38BDF8", dark: "#0369A1", band: "rgba(255,255,255,0.25)" },
+  { main: "#0D9488", top: "#2DD4BF", dark: "#0F766E", band: "rgba(255,255,255,0.25)" },
+  { main: "#4F46E5", top: "#818CF8", dark: "#3730A3", band: "rgba(255,255,255,0.25)" },
+  { main: "#7C3AED", top: "#A78BFA", dark: "#5B21B6", band: "rgba(255,255,255,0.25)" },
+  { main: "#EA580C", top: "#FB923C", dark: "#C2410C", band: "rgba(255,255,255,0.25)" },
+  { main: "#D97706", top: "#FBBF24", dark: "#B45309", band: "rgba(255,255,255,0.25)" },
+  { main: "#16A34A", top: "#4ADE80", dark: "#15803D", band: "rgba(255,255,255,0.25)" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -72,12 +112,15 @@ function Leaderboard({
         <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Top Stackers</h3>
       </div>
       {loading ? (
-        <p className="text-sm font-medium text-gray-300 text-center py-8">Loading...</p>
+        <div className="flex flex-col items-center justify-center py-10">
+          <IconLoader2 size={24} className="text-blue-600 animate-spin mb-2" />
+          <p className="text-xs font-medium text-gray-400">Loading scores...</p>
+        </div>
       ) : entries.length === 0 ? (
         <p className="text-sm font-medium text-gray-300 text-center py-8">No scores yet. Be the first.</p>
       ) : (
-        <div className="space-y-2">
-          {entries.slice(0, 20).map((entry, i) => {
+        <div className="space-y-2 max-h-[460px] overflow-y-auto pr-1">
+          {entries.slice(0, 25).map((entry, i) => {
             const isMe = entry.player_name.toLowerCase() === playerName.toLowerCase();
             return (
               <div
@@ -93,11 +136,11 @@ function Leaderboard({
                 >
                   {i === 0 ? <IconCrown size={14} className="mx-auto" /> : i + 1}
                 </span>
-                <span className={`text-sm font-bold flex-grow ${isMe ? "text-blue-600" : "text-gray-700"}`}>
+                <span className={`text-sm font-bold flex-grow truncate ${isMe ? "text-blue-600" : "text-gray-700"}`}>
                   {entry.player_name}
                   {isMe && <span className="ml-1 text-[10px] text-blue-400">(you)</span>}
                 </span>
-                <span className="text-sm font-black text-gray-900">{entry.score}</span>
+                <span className="text-sm font-black text-gray-900 shrink-0">{entry.score}</span>
               </div>
             );
           })}
@@ -108,7 +151,7 @@ function Leaderboard({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Main Page                                                          */
+/*  Main Barrel Stacker Page                                           */
 /* ------------------------------------------------------------------ */
 export default function BarrelStackerPage() {
   const [gameState, setGameState] = useState<GameState>("idle");
@@ -117,13 +160,14 @@ export default function BarrelStackerPage() {
   const [score, setScore] = useState(0);
   const [perfectCount, setPerfectCount] = useState(0);
   const [bestScore, setBestScore] = useState(0);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [lbLoading, setLbLoading] = useState(true);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Mock modal
+  // Mock taunt modal
   const [showMock, setShowMock] = useState(false);
   const [mockMessage, setMockMessage] = useState("");
   const [mockType, setMockType] = useState<"collapse" | "quit">("collapse");
@@ -132,9 +176,12 @@ export default function BarrelStackerPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const lastDropTimeRef = useRef<number>(0);
 
-  // Game state refs (mutable during animation loop)
+  // Game state refs (mutable inside requestAnimationFrame loop)
   const blocksRef = useRef<Block[]>([]);
+  const fallingPiecesRef = useRef<FallingPiece[]>([]);
+  const floatingTextsRef = useRef<FloatingText[]>([]);
   const movingBlockRef = useRef<{ x: number; width: number; direction: number }>({
     x: 0,
     width: INITIAL_BLOCK_WIDTH,
@@ -145,14 +192,26 @@ export default function BarrelStackerPage() {
   const perfectRef = useRef(0);
   const gameOverRef = useRef(false);
   const cameraOffsetRef = useRef(0);
+  const targetCameraOffsetRef = useRef(0);
 
-  /* Load name + best from localStorage */
+  /* Load name, best score, sound preferences */
   useEffect(() => {
     const saved = localStorage.getItem("spe_player_name");
     if (saved) setPlayerName(saved);
     const best = localStorage.getItem("spe_stacker_best");
     if (best) setBestScore(Number(best));
+    const savedSound = localStorage.getItem("spe_game_sound");
+    if (savedSound !== null) setSoundEnabled(savedSound === "true");
   }, []);
+
+  const toggleSound = () => {
+    setSoundEnabled((prev) => {
+      const next = !prev;
+      localStorage.setItem("spe_game_sound", String(next));
+      if (next) playClickSound();
+      return next;
+    });
+  };
 
   /* Fetch leaderboard */
   const fetchLeaderboard = useCallback(async () => {
@@ -198,7 +257,7 @@ export default function BarrelStackerPage() {
     [playerName, submitted, submitting, fetchLeaderboard]
   );
 
-  /* ── Drawing ──────────────────────────────────────── */
+  /* ── Canvas Rendering ──────────────────────────────── */
   const drawGame = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -210,12 +269,19 @@ export default function BarrelStackerPage() {
     canvas.height = CANVAS_HEIGHT * dpr;
     ctx.scale(dpr, dpr);
 
-    // Background
-    ctx.fillStyle = "#F8FAFF";
+    // Smooth camera lerp
+    cameraOffsetRef.current += (targetCameraOffsetRef.current - cameraOffsetRef.current) * 0.12;
+    const camera = cameraOffsetRef.current;
+
+    // Sky / Background
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, CANVAS_HEIGHT);
+    bgGrad.addColorStop(0, "#F1F5F9");
+    bgGrad.addColorStop(1, "#E2E8F0");
+    ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Grid lines
-    ctx.strokeStyle = "#E5E7EB";
+    // Faint grid lines
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.25)";
     ctx.lineWidth = 0.5;
     for (let y = 0; y < CANVAS_HEIGHT; y += 40) {
       ctx.beginPath();
@@ -224,62 +290,172 @@ export default function BarrelStackerPage() {
       ctx.stroke();
     }
 
-    const camera = cameraOffsetRef.current;
+    // ── 1. Draw Offshore Deck Base Platform ──
+    const platformY = CANVAS_HEIGHT - PLATFORM_HEIGHT - camera;
+    if (platformY < CANVAS_HEIGHT) {
+      // Steel deck body
+      const deckGrad = ctx.createLinearGradient(0, platformY, 0, platformY + PLATFORM_HEIGHT);
+      deckGrad.addColorStop(0, "#334155");
+      deckGrad.addColorStop(1, "#1E293B");
+      ctx.fillStyle = deckGrad;
+      ctx.fillRect(0, platformY, CANVAS_WIDTH, PLATFORM_HEIGHT + 100);
 
-    // Draw placed blocks
-    blocksRef.current.forEach((block, i) => {
+      // Warning hazard stripes across deck top rim
+      const stripeWidth = 16;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, platformY, CANVAS_WIDTH, 8);
+      ctx.clip();
+      for (let sx = -30; sx < CANVAS_WIDTH + 30; sx += stripeWidth * 2) {
+        ctx.fillStyle = "#F59E0B";
+        ctx.beginPath();
+        ctx.moveTo(sx, platformY);
+        ctx.lineTo(sx + stripeWidth, platformY);
+        ctx.lineTo(sx, platformY + 8);
+        ctx.lineTo(sx - stripeWidth, platformY + 8);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Platform text label
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.font = "bold 10px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("SPE OFFSHORE RIG DECK", CANVAS_WIDTH / 2, platformY + 28);
+    }
+
+    // ── 2. Draw Placed Barrels ──
+    blocksRef.current.forEach((block) => {
       const drawY = block.y - camera;
       if (drawY > CANVAS_HEIGHT + BLOCK_HEIGHT || drawY < -BLOCK_HEIGHT) return;
-      const colorIdx = i % BARREL_COLORS.length;
-      ctx.fillStyle = BARREL_COLORS[colorIdx];
-      ctx.fillRect(block.x, drawY, block.width, BLOCK_HEIGHT);
-      // Barrel bands
-      ctx.fillStyle = "rgba(255,255,255,0.15)";
-      ctx.fillRect(block.x, drawY + 2, block.width, 3);
-      ctx.fillRect(block.x, drawY + BLOCK_HEIGHT - 5, block.width, 3);
-      // Edge highlight
-      ctx.fillStyle = "rgba(255,255,255,0.08)";
-      ctx.fillRect(block.x, drawY, block.width, BLOCK_HEIGHT / 2);
-      // Border
-      ctx.strokeStyle = "rgba(0,0,0,0.1)";
+
+      const pal = BARREL_PALETTES[block.colorIdx % BARREL_PALETTES.length];
+
+      // Barrel Body
+      const barrelGrad = ctx.createLinearGradient(block.x, drawY, block.x + block.width, drawY);
+      barrelGrad.addColorStop(0, pal.dark);
+      barrelGrad.addColorStop(0.3, pal.top);
+      barrelGrad.addColorStop(0.7, pal.main);
+      barrelGrad.addColorStop(1, pal.dark);
+      ctx.fillStyle = barrelGrad;
+
+      // Rounded rectangle for smooth barrel edges
+      ctx.beginPath();
+      ctx.roundRect(block.x, drawY, block.width, BLOCK_HEIGHT, 4);
+      ctx.fill();
+
+      // Barrel Metallic Ribs (3 bands)
+      ctx.fillStyle = pal.band;
+      ctx.fillRect(block.x, drawY + 3, block.width, 2.5);
+      ctx.fillRect(block.x, drawY + BLOCK_HEIGHT / 2 - 1, block.width, 2.5);
+      ctx.fillRect(block.x, drawY + BLOCK_HEIGHT - 5.5, block.width, 2.5);
+
+      // Top sheen highlight
+      ctx.fillStyle = "rgba(255,255,255,0.12)";
+      ctx.fillRect(block.x + 2, drawY + 1, block.width - 4, BLOCK_HEIGHT / 3);
+
+      // Subtle stroke
+      ctx.strokeStyle = "rgba(0,0,0,0.2)";
       ctx.lineWidth = 1;
-      ctx.strokeRect(block.x, drawY, block.width, BLOCK_HEIGHT);
+      ctx.stroke();
     });
 
-    // Draw moving block
+    // ── 3. Draw Falling Debris Pieces ──
+    const remainingPieces: FallingPiece[] = [];
+    fallingPiecesRef.current.forEach((piece) => {
+      piece.x += piece.vx;
+      piece.y += piece.vy;
+      piece.vy += 0.55; // gravity
+      piece.rotation += piece.vRot;
+      piece.opacity = Math.max(0, piece.opacity - 0.015);
+
+      const drawY = piece.y - camera;
+      if (drawY < CANVAS_HEIGHT + 100 && piece.opacity > 0) {
+        remainingPieces.push(piece);
+
+        ctx.save();
+        ctx.translate(piece.x + piece.width / 2, drawY + piece.height / 2);
+        ctx.rotate(piece.rotation);
+        ctx.globalAlpha = piece.opacity;
+        ctx.fillStyle = piece.color;
+        ctx.beginPath();
+        ctx.roundRect(-piece.width / 2, -piece.height / 2, piece.width, piece.height, 3);
+        ctx.fill();
+        ctx.restore();
+      }
+    });
+    fallingPiecesRef.current = remainingPieces;
+
+    // ── 4. Draw Moving Barrel ──
     if (!gameOverRef.current) {
       const mb = movingBlockRef.current;
       const blocks = blocksRef.current;
-      const movingY = (blocks.length > 0 ? blocks[blocks.length - 1].y : CANVAS_HEIGHT - BLOCK_HEIGHT) - BLOCK_HEIGHT;
+      const topBlock = blocks[blocks.length - 1];
+      const movingY = topBlock ? topBlock.y - BLOCK_HEIGHT : CANVAS_HEIGHT - PLATFORM_HEIGHT - BLOCK_HEIGHT * 2;
       const drawY = movingY - camera;
-      const colorIdx = blocks.length % BARREL_COLORS.length;
-      ctx.fillStyle = BARREL_COLORS[colorIdx];
-      ctx.fillRect(mb.x, drawY, mb.width, BLOCK_HEIGHT);
+
+      const pal = BARREL_PALETTES[blocks.length % BARREL_PALETTES.length];
+
+      const barrelGrad = ctx.createLinearGradient(mb.x, drawY, mb.x + mb.width, drawY);
+      barrelGrad.addColorStop(0, pal.dark);
+      barrelGrad.addColorStop(0.3, pal.top);
+      barrelGrad.addColorStop(0.7, pal.main);
+      barrelGrad.addColorStop(1, pal.dark);
+      ctx.fillStyle = barrelGrad;
+
+      ctx.beginPath();
+      ctx.roundRect(mb.x, drawY, mb.width, BLOCK_HEIGHT, 4);
+      ctx.fill();
+
+      // Ribs
+      ctx.fillStyle = pal.band;
+      ctx.fillRect(mb.x, drawY + 3, mb.width, 2.5);
+      ctx.fillRect(mb.x, drawY + BLOCK_HEIGHT / 2 - 1, mb.width, 2.5);
+      ctx.fillRect(mb.x, drawY + BLOCK_HEIGHT - 5.5, mb.width, 2.5);
+
+      // Top sheen
       ctx.fillStyle = "rgba(255,255,255,0.15)";
-      ctx.fillRect(mb.x, drawY + 2, mb.width, 3);
-      ctx.fillRect(mb.x, drawY + BLOCK_HEIGHT - 5, mb.width, 3);
-      ctx.fillStyle = "rgba(255,255,255,0.08)";
-      ctx.fillRect(mb.x, drawY, mb.width, BLOCK_HEIGHT / 2);
-      ctx.strokeStyle = "rgba(0,0,0,0.1)";
+      ctx.fillRect(mb.x + 2, drawY + 1, mb.width - 4, BLOCK_HEIGHT / 3);
+
+      ctx.strokeStyle = "rgba(0,0,0,0.25)";
       ctx.lineWidth = 1;
-      ctx.strokeRect(mb.x, drawY, mb.width, BLOCK_HEIGHT);
+      ctx.stroke();
     }
 
-    // Score overlay
-    ctx.fillStyle = "rgba(0,0,0,0.06)";
-    ctx.font = "bold 80px system-ui, sans-serif";
+    // ── 5. Draw Floating Text Particles ──
+    const remainingTexts: FloatingText[] = [];
+    floatingTextsRef.current.forEach((ft) => {
+      ft.y -= 1.2;
+      ft.opacity -= 0.02;
+      if (ft.opacity > 0) {
+        remainingTexts.push(ft);
+        ctx.save();
+        ctx.globalAlpha = ft.opacity;
+        ctx.fillStyle = ft.color;
+        ctx.font = "bold 16px system-ui, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(ft.text, ft.x, ft.y - camera);
+        ctx.restore();
+      }
+    });
+    floatingTextsRef.current = remainingTexts;
+
+    // ── 6. Large Background Score Counter ──
+    ctx.fillStyle = "rgba(15, 23, 42, 0.07)";
+    ctx.font = "bold 96px system-ui, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(String(scoreRef.current), CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 28);
+    ctx.fillText(String(scoreRef.current), CANVAS_WIDTH / 2, 120);
   }, []);
 
-  /* ── Game Loop ──────────────────────────────────────── */
+  /* ── Animation Loop ────────────────────────────────── */
   const gameLoop = useCallback(() => {
     if (gameOverRef.current) return;
 
     const mb = movingBlockRef.current;
     mb.x += speedRef.current * mb.direction;
 
-    // Bounce off canvas edges
+    // Bounce off canvas walls
     if (mb.x + mb.width >= CANVAS_WIDTH) {
       mb.x = CANVAS_WIDTH - mb.width;
       mb.direction = -1;
@@ -292,85 +468,156 @@ export default function BarrelStackerPage() {
     animRef.current = requestAnimationFrame(gameLoop);
   }, [drawGame]);
 
-  /* ── Place block ──────────────────────────────────── */
+  /* ── Place Block (Drop Action) ─────────────────────── */
   const placeBlock = useCallback(() => {
     if (gameOverRef.current || gameState !== "playing") return;
 
+    // Prevent micro-spam double drops
+    const now = performance.now();
+    if (now - lastDropTimeRef.current < 90) return;
+    lastDropTimeRef.current = now;
+
     const mb = movingBlockRef.current;
     const blocks = blocksRef.current;
-    const blockCount = blocks.length;
+    if (blocks.length === 0) return;
 
-    let newX: number;
-    let newWidth: number;
+    const prev = blocks[blocks.length - 1];
 
-    if (blockCount === 0) {
-      // First block - just place it
-      newX = mb.x;
-      newWidth = mb.width;
-    } else {
-      const prev = blocks[blockCount - 1];
-      const overlapStart = Math.max(mb.x, prev.x);
-      const overlapEnd = Math.min(mb.x + mb.width, prev.x + prev.width);
-      newWidth = overlapEnd - overlapStart;
+    // Compute overlap with previous placed barrel
+    const overlapStart = Math.max(mb.x, prev.x);
+    const overlapEnd = Math.min(mb.x + mb.width, prev.x + prev.width);
+    let overlapWidth = overlapEnd - overlapStart;
 
-      if (newWidth <= 0) {
-        // Complete miss - game over
-        gameOverRef.current = true;
-        cancelAnimationFrame(animRef.current);
+    const colorIdx = blocks.length % BARREL_PALETTES.length;
+    const pal = BARREL_PALETTES[colorIdx];
 
-        const finalScore = scoreRef.current;
-        setScore(finalScore);
+    if (overlapWidth <= 0) {
+      // Complete Miss -> Collapse!
+      gameOverRef.current = true;
+      cancelAnimationFrame(animRef.current);
 
-        // Update best
-        if (finalScore > bestScore) {
-          setBestScore(finalScore);
-          localStorage.setItem("spe_stacker_best", String(finalScore));
-        }
+      if (soundEnabled) playBuzzer();
 
-        // Show mock then result
-        setMockType("collapse");
-        setMockMessage(getRandomMock(STACKER_COLLAPSE_MOCKS));
-        setShowMock(true);
-        return;
+      // Create a falling debris piece of the entire missed moving block
+      fallingPiecesRef.current.push({
+        x: mb.x,
+        y: prev.y - BLOCK_HEIGHT,
+        width: mb.width,
+        height: BLOCK_HEIGHT,
+        color: pal.main,
+        vx: mb.direction * 3,
+        vy: 2,
+        rotation: 0,
+        vRot: mb.direction * 0.08,
+        opacity: 1,
+      });
+
+      drawGame();
+
+      const finalScore = scoreRef.current;
+      setScore(finalScore);
+
+      if (finalScore > bestScore) {
+        setBestScore(finalScore);
+        localStorage.setItem("spe_stacker_best", String(finalScore));
       }
 
-      newX = overlapStart;
+      setMockType("collapse");
+      setMockMessage(getRandomMock(STACKER_COLLAPSE_MOCKS));
+      setTimeout(() => setShowMock(true), 400);
+      return;
+    }
 
-      // Perfect placement bonus (within 2px tolerance)
-      const diff = Math.abs(mb.x - prev.x);
-      if (diff <= 2 && Math.abs(mb.width - prev.width) <= 2) {
-        // Perfect - snap to previous block exactly and add bonus width
-        newX = prev.x;
-        newWidth = prev.width;
-        perfectRef.current += 1;
-        setPerfectCount(perfectRef.current);
+    // Check Perfect Placement (within 3.5px tolerance)
+    let placedX = overlapStart;
+    const diff = Math.abs(mb.x - prev.x);
+    const isPerfect = diff <= 3.5 && Math.abs(mb.width - prev.width) <= 4;
+
+    if (isPerfect) {
+      // Perfect alignment! Snap to previous width and reward player
+      placedX = prev.x;
+      overlapWidth = prev.width;
+      perfectRef.current += 1;
+      setPerfectCount(perfectRef.current);
+
+      if (soundEnabled) playCorrectChime();
+
+      floatingTextsRef.current.push({
+        id: Date.now() + Math.random(),
+        text: `PERFECT! +${perfectRef.current > 1 ? `${perfectRef.current}x` : "1"}`,
+        x: placedX + overlapWidth / 2,
+        y: prev.y - BLOCK_HEIGHT - 5,
+        color: "#F59E0B",
+        opacity: 1,
+        scale: 1,
+      });
+    } else {
+      perfectRef.current = 0;
+      setPerfectCount(0);
+      if (soundEnabled) playClickSound();
+
+      // Spawn falling slice piece for the trimmed overhang
+      if (mb.x < prev.x) {
+        // Left overhang sliced off
+        const sliceWidth = prev.x - mb.x;
+        fallingPiecesRef.current.push({
+          x: mb.x,
+          y: prev.y - BLOCK_HEIGHT,
+          width: sliceWidth,
+          height: BLOCK_HEIGHT,
+          color: pal.main,
+          vx: -1.5,
+          vy: 1,
+          rotation: 0,
+          vRot: -0.06,
+          opacity: 1,
+        });
+      } else if (mb.x + mb.width > prev.x + prev.width) {
+        // Right overhang sliced off
+        const sliceWidth = mb.x + mb.width - (prev.x + prev.width);
+        fallingPiecesRef.current.push({
+          x: prev.x + prev.width,
+          y: prev.y - BLOCK_HEIGHT,
+          width: sliceWidth,
+          height: BLOCK_HEIGHT,
+          color: pal.main,
+          vx: 1.5,
+          vy: 1,
+          rotation: 0,
+          vRot: 0.06,
+          opacity: 1,
+        });
       }
     }
 
-    const newY = blockCount > 0
-      ? blocks[blockCount - 1].y - BLOCK_HEIGHT
-      : CANVAS_HEIGHT - BLOCK_HEIGHT;
+    const newY = prev.y - BLOCK_HEIGHT;
+    blocks.push({
+      x: placedX,
+      width: overlapWidth,
+      y: newY,
+      colorIdx,
+    });
 
-    blocks.push({ x: newX, width: newWidth, y: newY });
     scoreRef.current += 1;
     setScore(scoreRef.current);
 
-    // Camera: scroll up once stack gets tall
-    const targetCameraOffset = Math.max(0, (CANVAS_HEIGHT - BLOCK_HEIGHT) - newY - CANVAS_HEIGHT * 0.6);
-    cameraOffsetRef.current = targetCameraOffset;
+    // Camera follow: glide up once stack passes 40% height of screen
+    const targetCamera = Math.max(0, (CANVAS_HEIGHT - PLATFORM_HEIGHT - 220) - newY);
+    targetCameraOffsetRef.current = targetCamera;
 
-    // Speed up
+    // Progressive speed scaling
     speedRef.current = Math.min(INITIAL_SPEED + scoreRef.current * SPEED_INCREMENT, MAX_SPEED);
 
-    // Next moving block
+    // Spawn next moving block from opposite side
+    const nextDir = scoreRef.current % 2 === 0 ? 1 : -1;
     movingBlockRef.current = {
-      x: 0,
-      width: newWidth,
-      direction: scoreRef.current % 2 === 0 ? 1 : -1,
+      x: nextDir === 1 ? 0 : CANVAS_WIDTH - overlapWidth,
+      width: overlapWidth,
+      direction: nextDir,
     };
-  }, [gameState, bestScore]);
+  }, [gameState, bestScore, drawGame, soundEnabled]);
 
-  /* ── Start / Reset ──────────────────────────────────── */
+  /* ── Start / Reset Game State ──────────────────────── */
   const startGame = () => {
     if (!playerName) {
       setGameState("name");
@@ -381,21 +628,43 @@ export default function BarrelStackerPage() {
   };
 
   const resetAndPlay = () => {
-    blocksRef.current = [];
+    // Initialize base platform barrel (Block 0)
+    const baseBarrelX = (CANVAS_WIDTH - INITIAL_BLOCK_WIDTH) / 2;
+    const baseBarrelY = CANVAS_HEIGHT - PLATFORM_HEIGHT - BLOCK_HEIGHT;
+
+    blocksRef.current = [
+      {
+        x: baseBarrelX,
+        width: INITIAL_BLOCK_WIDTH,
+        y: baseBarrelY,
+        colorIdx: 0,
+      },
+    ];
+
+    fallingPiecesRef.current = [];
+    floatingTextsRef.current = [];
     scoreRef.current = 0;
     perfectRef.current = 0;
     speedRef.current = INITIAL_SPEED;
     gameOverRef.current = false;
     cameraOffsetRef.current = 0;
+    targetCameraOffsetRef.current = 0;
+
+    // Moving block starts above Block 0
     movingBlockRef.current = {
       x: 0,
       width: INITIAL_BLOCK_WIDTH,
       direction: 1,
     };
+
     setScore(0);
     setPerfectCount(0);
     setSubmitted(false);
     setGameState("playing");
+
+    if (soundEnabled) playClickSound();
+
+    cancelAnimationFrame(animRef.current);
     animRef.current = requestAnimationFrame(gameLoop);
   };
 
@@ -412,10 +681,12 @@ export default function BarrelStackerPage() {
     cancelAnimationFrame(animRef.current);
     const finalScore = scoreRef.current;
     setScore(finalScore);
+
     if (finalScore > bestScore) {
       setBestScore(finalScore);
       localStorage.setItem("spe_stacker_best", String(finalScore));
     }
+
     if (finalScore > 0) {
       setMockType("quit");
       setMockMessage(getRandomMock(STACKER_QUIT_MOCKS));
@@ -432,17 +703,15 @@ export default function BarrelStackerPage() {
     if (finalScore >= 1 && playerName) {
       submitScore(finalScore);
     }
+    if (soundEnabled && finalScore >= 5) {
+      playFanfare();
+    }
   };
 
-  /* ── Canvas click/tap ──────────────────────────────── */
-  const handleCanvasInteraction = useCallback(() => {
-    placeBlock();
-  }, [placeBlock]);
-
-  /* ── Keyboard support ──────────────────────────────── */
+  /* ── Keyboard Support (<Space>, <Enter>, <ArrowDown>) ─ */
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (gameState === "playing" && (e.code === "Space" || e.code === "Enter")) {
+      if (gameState === "playing" && (e.code === "Space" || e.code === "Enter" || e.code === "ArrowDown")) {
         e.preventDefault();
         placeBlock();
       }
@@ -451,19 +720,19 @@ export default function BarrelStackerPage() {
     return () => window.removeEventListener("keydown", handler);
   }, [gameState, placeBlock]);
 
-  /* Cleanup on unmount */
+  /* Cleanup animation on unmount */
   useEffect(() => {
     return () => cancelAnimationFrame(animRef.current);
   }, []);
 
-  /* ── Score tier label ──────────────────────────────── */
+  /* ── Tier Grading ─────────────────────────────────── */
   const getTier = (s: number) => {
-    if (s >= 50) return { label: "Legendary", color: "text-amber-500" };
-    if (s >= 35) return { label: "Master Stacker", color: "text-violet-600" };
-    if (s >= 25) return { label: "Expert", color: "text-blue-600" };
-    if (s >= 15) return { label: "Skilled", color: "text-emerald-600" };
-    if (s >= 8) return { label: "Getting There", color: "text-orange-500" };
-    if (s >= 3) return { label: "Beginner", color: "text-gray-500" };
+    if (s >= 50) return { label: "⚡ Legendary Stacker", color: "text-amber-500" };
+    if (s >= 35) return { label: "🏆 Master Engineer", color: "text-violet-600" };
+    if (s >= 25) return { label: "🎯 Precision Pro", color: "text-blue-600" };
+    if (s >= 15) return { label: "🛢️ Skilled Rig Hand", color: "text-emerald-600" };
+    if (s >= 8) return { label: "🔧 Getting Warmed Up", color: "text-orange-500" };
+    if (s >= 3) return { label: "Apprentice", color: "text-gray-500" };
     return { label: "Better luck next time", color: "text-gray-400" };
   };
 
@@ -475,99 +744,112 @@ export default function BarrelStackerPage() {
 
       <main className="flex-grow pt-28 pb-24 md:pt-40 md:pb-32">
         <div className="container mx-auto px-4 sm:px-6 lg:px-24">
-          {/* Back link */}
-          <Link
-            href="/programs/resources"
-            className="inline-flex items-center gap-1.5 text-xs font-black text-gray-300 uppercase tracking-widest hover:text-blue-600 transition-colors mb-8"
-          >
-            <IconArrowLeft size={14} /> Resources
-          </Link>
+          {/* Header controls */}
+          <div className="flex items-center justify-between mb-6">
+            <Link
+              href="/programs/resources"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-blue-600 transition-colors"
+            >
+              <IconArrowLeft size={14} />
+              All Resources
+            </Link>
+            <button
+              onClick={toggleSound}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-xs font-bold text-gray-600 hover:text-gray-900 transition-colors shadow-sm"
+              title={soundEnabled ? "Mute Sound" : "Enable Sound"}
+            >
+              {soundEnabled ? <IconVolume size={14} className="text-blue-600" /> : <IconVolumeOff size={14} className="text-gray-400" />}
+              <span>{soundEnabled ? "Sound ON" : "Muted"}</span>
+            </button>
+          </div>
 
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* ── Left column: Game ──────────────────────── */}
+            {/* ── Left column: Game Screen ───────────────── */}
             <div className="flex-grow max-w-xl mx-auto lg:mx-0 w-full">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-[2rem] sm:rounded-[3rem] border border-gray-100 p-6 sm:p-10"
+                className="bg-white rounded-[2rem] sm:rounded-[3rem] border border-gray-100 p-6 sm:p-10 shadow-sm"
               >
                 {/* Title */}
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-                    <IconLayersIntersect size={20} className="text-blue-600" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-200">
+                    <IconLayersIntersect size={20} />
                   </div>
                   <div>
                     <h1 className="text-xl font-black text-gray-900">Barrel Stacker</h1>
-                    <p className="text-xs font-bold text-gray-400">Tap to stack. Don't miss.</p>
+                    <p className="text-xs font-bold text-gray-400">Offshore Rig Stacking Challenge</p>
                   </div>
                 </div>
 
                 <AnimatePresence mode="wait">
-                  {/* ── Idle ── */}
+                  {/* ── 1. Idle Screen ── */}
                   {gameState === "idle" && (
                     <motion.div
                       key="idle"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="text-center py-10"
+                      initial={{ opacity: 0, scale: 0.96 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.96 }}
+                      className="text-center py-8"
                     >
-                      <div className="mb-6">
-                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-blue-50 mb-4">
-                          <IconLayersIntersect size={36} className="text-blue-600" />
-                        </div>
-                        <h2 className="text-2xl font-black text-gray-900 mb-2">
-                          Stack the Barrels
-                        </h2>
-                        <p className="text-sm font-medium text-gray-400 max-w-sm mx-auto leading-relaxed">
-                          Oil barrels slide across the screen. Tap or press space to drop each one.
-                          Misaligned parts get sliced off. One miss and it's over.
-                        </p>
-                        {bestScore > 0 && (
-                          <p className="mt-3 text-xs font-black text-blue-600 uppercase tracking-widest">
-                            Personal Best: {bestScore}
-                          </p>
-                        )}
+                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-blue-50 mb-4">
+                        <IconLayersIntersect size={36} className="text-blue-600" />
                       </div>
+                      <h2 className="text-2xl font-black text-gray-900 mb-2">
+                        Stack Oil Barrels to the Sky
+                      </h2>
+                      <p className="text-sm font-medium text-gray-400 max-w-sm mx-auto leading-relaxed mb-6">
+                        Oil barrels slide across the rig deck. Tap or press <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-xs font-mono font-bold text-gray-700">Space</kbd> to drop each one.
+                        Misaligned overhangs get sliced off.
+                      </p>
+
+                      {bestScore > 0 && (
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-xs font-black text-blue-600 mb-6">
+                          <IconCrown size={14} className="text-amber-500" />
+                          Personal Best: {bestScore} Barrels
+                        </div>
+                      )}
 
                       {playerName && (
-                        <p className="text-xs font-bold text-gray-400 mb-4">
-                          Playing as <span className="text-blue-600">{playerName}</span>
+                        <p className="text-xs font-bold text-gray-400 mb-6">
+                          Player: <span className="text-blue-600 font-bold">{playerName}</span>
                           <button
                             onClick={() => setGameState("name")}
-                            className="ml-2 text-blue-400 hover:text-blue-600 underline"
+                            className="ml-2 text-blue-400 hover:text-blue-600 underline font-bold"
                           >
                             change
                           </button>
                         </p>
                       )}
 
-                      <button
-                        onClick={startGame}
-                        className="px-10 py-4 bg-blue-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-lg shadow-blue-200 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-300 active:scale-95 transition-all"
-                      >
-                        <span className="flex items-center gap-2">
-                          Start Stacking <IconChevronRight size={16} />
-                        </span>
-                      </button>
+                      <div>
+                        <button
+                          onClick={startGame}
+                          className="px-10 py-4 bg-blue-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all"
+                        >
+                          <span className="flex items-center gap-2">
+                            Start Stacking <IconChevronRight size={16} />
+                          </span>
+                        </button>
+                      </div>
                     </motion.div>
                   )}
 
-                  {/* ── Name Entry ── */}
+                  {/* ── 2. Name Entry ── */}
                   {gameState === "name" && (
                     <motion.div
                       key="name"
-                      initial={{ opacity: 0, scale: 0.95 }}
+                      initial={{ opacity: 0, scale: 0.96 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      className="text-center py-10"
+                      exit={{ opacity: 0, scale: 0.96 }}
+                      className="text-center py-8"
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 mb-4">
                         <IconUser size={28} className="text-blue-600" />
                       </div>
-                      <h3 className="text-xl font-black text-gray-900 mb-2">What's Your Name?</h3>
+                      <h3 className="text-xl font-black text-gray-900 mb-2">What&apos;s Your Name?</h3>
                       <p className="text-sm font-medium text-gray-400 mb-6">
-                        This appears on the leaderboard.
+                        Your highest barrel tower will be recorded on the leaderboard.
                       </p>
                       <div className="max-w-xs mx-auto">
                         <input
@@ -577,21 +859,21 @@ export default function BarrelStackerPage() {
                           value={nameInput}
                           onChange={(e) => setNameInput(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && saveName()}
-                          placeholder="Enter your name"
-                          className="w-full text-center text-lg font-bold rounded-2xl border border-gray-200 px-6 py-4 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-50 transition-all"
+                          placeholder="e.g. MasterDriller"
+                          className="w-full text-center text-base font-bold rounded-xl border border-gray-200 px-4 py-3.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all bg-gray-50"
                         />
                         <button
                           onClick={saveName}
                           disabled={!nameInput.trim()}
-                          className="mt-4 w-full px-6 py-4 bg-blue-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-40"
+                          className="mt-4 w-full px-6 py-3.5 bg-blue-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-md shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-40"
                         >
-                          Let's Go
+                          Enter Rig
                         </button>
                       </div>
                     </motion.div>
                   )}
 
-                  {/* ── Playing ── */}
+                  {/* ── 3. Active Gameplay ── */}
                   {gameState === "playing" && (
                     <motion.div
                       key="playing"
@@ -599,57 +881,60 @@ export default function BarrelStackerPage() {
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                     >
-                      {/* Score bar */}
+                      {/* Live Score Bar */}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <span className="text-3xl font-black text-gray-900">{score}</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-black text-gray-400 uppercase">Height:</span>
+                            <span className="text-2xl font-black text-gray-900">{score}</span>
+                          </div>
                           {perfectCount > 0 && (
-                            <span className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-wider">
-                              {perfectCount} perfect
+                            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-100 text-amber-600 text-[10px] font-black uppercase tracking-wider">
+                              <IconSparkles size={12} />
+                              {perfectCount}x combo
                             </span>
                           )}
                         </div>
                         <button
                           onClick={handleQuit}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black text-gray-300 uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-gray-400 hover:bg-rose-50 hover:text-rose-600 transition-all"
                         >
-                          <IconFlag size={12} /> Quit
+                          <IconFlag size={14} /> Quit
                         </button>
                       </div>
 
-                      {/* Canvas */}
+                      {/* Interactive Canvas Container */}
                       <div
-                        className="relative rounded-2xl overflow-hidden border border-gray-100 cursor-pointer select-none"
-                        onClick={handleCanvasInteraction}
-                        onTouchStart={(e) => {
+                        className="relative rounded-2xl overflow-hidden border border-gray-200 cursor-pointer select-none shadow-sm"
+                        onPointerDown={(e) => {
                           e.preventDefault();
-                          handleCanvasInteraction();
+                          placeBlock();
                         }}
                       >
                         <canvas
                           ref={canvasRef}
                           style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
-                          className="block mx-auto"
+                          className="block mx-auto max-w-full"
                         />
-                        <div className="absolute bottom-3 left-0 right-0 text-center">
-                          <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
-                            Tap or press Space to drop
+                        <div className="absolute top-3 left-0 right-0 text-center pointer-events-none">
+                          <span className="inline-block px-3 py-1 rounded-full bg-black/40 backdrop-blur-md text-[10px] font-bold text-white uppercase tracking-widest">
+                            Tap anywhere to drop
                           </span>
                         </div>
                       </div>
                     </motion.div>
                   )}
 
-                  {/* ── Result ── */}
+                  {/* ── 4. Result Screen ── */}
                   {gameState === "result" && (
                     <motion.div
                       key="result"
-                      initial={{ opacity: 0, scale: 0.95 }}
+                      initial={{ opacity: 0, scale: 0.96 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      className="text-center py-8"
+                      exit={{ opacity: 0, scale: 0.96 }}
+                      className="text-center py-6"
                     >
-                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-blue-50 mb-4">
+                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-blue-50 mb-3">
                         <IconLayersIntersect size={36} className="text-blue-600" />
                       </div>
 
@@ -659,31 +944,31 @@ export default function BarrelStackerPage() {
                         </p>
                       </div>
 
-                      <p className="text-6xl font-black text-gray-900 mb-1">{score}</p>
-                      <p className="text-sm font-bold text-gray-400 mb-6">barrels stacked</p>
+                      <p className="text-5xl sm:text-6xl font-black text-gray-900 mb-1">{score}</p>
+                      <p className="text-sm font-bold text-gray-400 mb-6">Barrels Successfully Stacked</p>
 
-                      <div className="flex justify-center gap-6 mb-8">
+                      <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto bg-gray-50 rounded-2xl p-4 mb-6">
                         <div className="text-center">
-                          <p className="text-lg font-black text-gray-900">{perfectCount}</p>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Perfect</p>
+                          <p className="text-lg font-black text-amber-500">{perfectCount}</p>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Perfect Snaps</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-lg font-black text-gray-900">{bestScore}</p>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Best</p>
+                          <p className="text-lg font-black text-blue-600">{bestScore}</p>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Personal Best</p>
                         </div>
                       </div>
 
                       {submitting && (
                         <div className="flex items-center justify-center gap-2 mb-4">
                           <IconLoader2 size={14} className="animate-spin text-blue-600" />
-                          <span className="text-xs font-bold text-gray-400">Saving score...</span>
+                          <span className="text-xs font-bold text-gray-400">Saving score to leaderboard...</span>
                         </div>
                       )}
 
                       <div className="flex flex-col sm:flex-row gap-3 justify-center">
                         <button
                           onClick={resetAndPlay}
-                          className="px-8 py-4 bg-blue-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all"
+                          className="px-8 py-3.5 bg-blue-600 text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95 transition-all"
                         >
                           <span className="flex items-center gap-2 justify-center">
                             <IconRotate2 size={16} /> Play Again
@@ -691,7 +976,7 @@ export default function BarrelStackerPage() {
                         </button>
                         <button
                           onClick={() => setGameState("idle")}
-                          className="px-8 py-4 bg-gray-100 text-gray-600 font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-gray-200 active:scale-95 transition-all"
+                          className="px-8 py-3.5 bg-gray-100 text-gray-600 font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-gray-200 active:scale-95 transition-all"
                         >
                           Menu
                         </button>
@@ -710,7 +995,7 @@ export default function BarrelStackerPage() {
         </div>
       </main>
 
-      {/* ── Mock Modal ──────────────────────────────────── */}
+      {/* ── Collapse Taunt Modal ──────────────────────────── */}
       <AnimatePresence>
         {showMock && (
           <motion.div
