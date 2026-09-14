@@ -64,6 +64,50 @@ export interface RoomState {
   hostConnectionId: string | null;
 }
 
+function isOptionCorrect(opt: any): boolean {
+  if (!opt) return false;
+  return (
+    opt.is_correct === true ||
+    opt.is_correct === "true" ||
+    opt.is_correct === 1 ||
+    opt.is_correct === "1" ||
+    opt.isCorrect === true ||
+    opt.isCorrect === "true" ||
+    opt.isCorrect === 1
+  );
+}
+
+function normalizeQuestions(questions: any[]): Question[] {
+  if (!Array.isArray(questions)) return [];
+  return questions.map((q, qIdx) => {
+    let options = q.options;
+    if (typeof options === "string") {
+      try {
+        options = JSON.parse(options);
+      } catch {
+        options = [];
+      }
+    }
+    if (!Array.isArray(options)) options = [];
+
+    const normalizedOptions = options.map((opt: any, optIdx: number) => ({
+      id: opt?.id ?? optIdx + 1,
+      text: String(opt?.text ?? opt?.label ?? opt ?? ""),
+      is_correct: isOptionCorrect(opt),
+    }));
+
+    return {
+      id: String(q.id || `q_${qIdx + 1}`),
+      question_text: String(q.question_text || q.question || `Question ${qIdx + 1}`),
+      image_url: q.image_url || null,
+      time_limit: typeof q.time_limit === "number" && q.time_limit > 0 ? q.time_limit : 20,
+      points: typeof q.points === "number" && !isNaN(q.points) ? q.points : 10,
+      order_index: typeof q.order_index === "number" ? q.order_index : qIdx + 1,
+      options: normalizedOptions,
+    };
+  });
+}
+
 export class ShowdownRoom extends Server {
   state!: RoomState;
 
@@ -141,7 +185,7 @@ export class ShowdownRoom extends Server {
           this.state.hostConnectionId = conn.id;
           this.state.isInitialized = true;
           this.state.quizTitle = data.quizTitle || "SPE Showdown";
-          this.state.questions = data.questions || [];
+          this.state.questions = normalizeQuestions(data.questions);
           this.state.status = "LOBBY";
           this.state.progressionMode = data.progressionMode === "AUTO" || data.mode === "AUTO" ? "AUTO" : "MANUAL";
           this.state.isPaused = false;
@@ -209,41 +253,63 @@ export class ShowdownRoom extends Server {
             return;
           }
 
-          // Check if nickname is taken by another connected player
-          const isTaken = Object.values(this.state.players).some(
-            (p) => p.connected && p.nickname.toLowerCase() === rawNick.toLowerCase() && p.id !== conn.id
+          // Check if there is an existing player entry with the same nickname
+          const existingEntry = Object.entries(this.state.players).find(
+            ([id, p]) => p.nickname.toLowerCase() === rawNick.toLowerCase()
           );
 
-          if (isTaken) {
-            conn.send(
-              JSON.stringify({
-                type: "JOIN_ERROR",
-                message: "Nickname is already taken. Please pick another.",
-              })
-            );
-            return;
+          if (existingEntry) {
+            const [existingConnId, existingPlayer] = existingEntry;
+            if (existingConnId !== conn.id) {
+              if (existingPlayer.connected) {
+                // Another active connection already has this nickname
+                conn.send(
+                  JSON.stringify({
+                    type: "JOIN_ERROR",
+                    message: "Nickname is already taken. Please pick another.",
+                  })
+                );
+                return;
+              } else {
+                // Reconnecting player / route transition! Migrate state to new connection
+                this.state.players[conn.id] = {
+                  ...existingPlayer,
+                  id: conn.id,
+                  connected: true,
+                  avatarType: data.avatarType || existingPlayer.avatarType || "blobby",
+                  avatarColor: data.avatarColor || existingPlayer.avatarColor || "#2563EB",
+                };
+                delete this.state.players[existingConnId];
+              }
+            } else {
+              // Same connection re-announcing join
+              existingPlayer.connected = true;
+              if (data.avatarType) existingPlayer.avatarType = data.avatarType;
+              if (data.avatarColor) existingPlayer.avatarColor = data.avatarColor;
+            }
+          } else {
+            // New player
+            this.state.players[conn.id] = {
+              id: conn.id,
+              nickname: rawNick,
+              avatarType: data.avatarType || "blobby",
+              avatarColor: data.avatarColor || "#2563EB",
+              score: 0,
+              streak: 0,
+              lastPoints: 0,
+              lastAnswerCorrect: null,
+              hasAnswered: false,
+              connected: true,
+            };
           }
-
-          this.state.players[conn.id] = {
-            id: conn.id,
-            nickname: rawNick,
-            avatarType: data.avatarType || "blobby",
-            avatarColor: data.avatarColor || "#2563EB",
-            score: 0,
-            streak: 0,
-            lastPoints: 0,
-            lastAnswerCorrect: null,
-            hasAnswered: false,
-            connected: true,
-          };
 
           conn.send(
             JSON.stringify({
               type: "JOIN_CONFIRMED",
               playerId: conn.id,
               nickname: rawNick,
-              avatarType: data.avatarType || "blobby",
-              avatarColor: data.avatarColor || "#2563EB",
+              avatarType: this.state.players[conn.id]?.avatarType || "blobby",
+              avatarColor: this.state.players[conn.id]?.avatarColor || "#2563EB",
             })
           );
           this.broadcastState();
@@ -253,7 +319,7 @@ export class ShowdownRoom extends Server {
         // Host starts the game
         case "START_GAME": {
           if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
-            this.state.questions = data.questions;
+            this.state.questions = normalizeQuestions(data.questions);
           }
           if (data.progressionMode) {
             this.state.progressionMode = data.progressionMode === "AUTO" ? "AUTO" : "MANUAL";
@@ -289,29 +355,39 @@ export class ShowdownRoom extends Server {
           const selectedOptionIndex =
             typeof data.optionIndex === "number"
               ? data.optionIndex
-              : typeof selectedOptionId === "number" && selectedOptionId >= 0 && selectedOptionId < currentQ.options.length
-              ? selectedOptionId
               : -1;
 
-          // Resolve chosen option cleanly by index or ID
+          // Resolve chosen option cleanly by index (0..3) or ID
           let selectedOption = null;
           if (
-            typeof selectedOptionIndex === "number" &&
             selectedOptionIndex >= 0 &&
             selectedOptionIndex < currentQ.options.length
           ) {
             selectedOption = currentQ.options[selectedOptionIndex];
-          } else if (selectedOptionId !== undefined && selectedOptionId !== null) {
-            selectedOption =
-              currentQ.options.find((o) => String(o.id) === String(selectedOptionId)) || null;
           }
 
-          const correctOption = currentQ.options.find((o) => o.is_correct);
-          const correctOptionIndex = currentQ.options.findIndex((o) => o.is_correct);
+          if (!selectedOption && selectedOptionId !== undefined && selectedOptionId !== null) {
+            selectedOption =
+              currentQ.options.find(
+                (o) => String(o.id) === String(selectedOptionId)
+              ) || null;
+          }
+
+          if (
+            !selectedOption &&
+            typeof selectedOptionId === "number" &&
+            selectedOptionId >= 0 &&
+            selectedOptionId < currentQ.options.length
+          ) {
+            selectedOption = currentQ.options[selectedOptionId];
+          }
+
+          const correctOption = currentQ.options.find((o) => isOptionCorrect(o));
+          const correctOptionIndex = currentQ.options.findIndex((o) => isOptionCorrect(o));
 
           let isCorrect = false;
           if (selectedOption) {
-            isCorrect = Boolean(selectedOption.is_correct);
+            isCorrect = isOptionCorrect(selectedOption);
           } else if (correctOption) {
             if (String(correctOption.id) === String(selectedOptionId)) {
               isCorrect = true;
@@ -321,13 +397,13 @@ export class ShowdownRoom extends Server {
           }
 
           // Calculate score based on response speed
-          const elapsedSeconds = (Date.now() - this.state.questionStartedAt) / 1000;
+          const elapsedSeconds = Math.max(0, (Date.now() - this.state.questionStartedAt) / 1000);
           const totalSeconds = currentQ.time_limit || 20;
           const remainingFactor = Math.max(0, Math.min(1, (totalSeconds - elapsedSeconds) / totalSeconds));
           
           let pointsEarned = 0;
           if (isCorrect) {
-            const basePoints = typeof currentQ.points === "number" ? currentQ.points : 10;
+            const basePoints = typeof currentQ.points === "number" && !isNaN(currentQ.points) ? currentQ.points : 10;
             if (basePoints === 0) {
               pointsEarned = 0;
             } else {
@@ -367,7 +443,7 @@ export class ShowdownRoom extends Server {
           // Broadcast progress
           this.broadcastState();
 
-          // Auto-end question if all players answered
+          // Auto-end question if all connected players answered
           const totalConnected = Object.values(this.state.players).filter((p) => p.connected).length;
           if (this.state.answersCount >= totalConnected && totalConnected > 0) {
             this.endQuestionRound();
@@ -453,9 +529,17 @@ export class ShowdownRoom extends Server {
     this.state.status = "REVEAL";
     const currentQ = this.state.questions[this.state.currentQuestionIndex];
     if (currentQ) {
-      const correctOpt = currentQ.options.find((o) => o.is_correct);
+      const correctOpt = currentQ.options.find((o) => isOptionCorrect(o));
       this.state.correctOptionId = correctOpt ? correctOpt.id : null;
     }
+    // For any player that did not answer before round ended, mark them as incorrect with 0 pts
+    Object.values(this.state.players).forEach((p) => {
+      if (!p.hasAnswered) {
+        p.streak = 0;
+        p.lastPoints = 0;
+        p.lastAnswerCorrect = false;
+      }
+    });
     this.calculateRanks();
     this.broadcastState();
   }

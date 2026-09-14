@@ -32,9 +32,22 @@ export async function GET(
       return NextResponse.json({ error: "Quiz not found" }, { status: 404 });
     }
 
-    const questions = (quiz.showdown_questions || []).sort(
-      (a: any, b: any) => (a.order_index || 0) - (b.order_index || 0)
-    );
+    const questions = (quiz.showdown_questions || [])
+      .map((q: any) => {
+        let options = q.options;
+        if (typeof options === "string") {
+          try {
+            options = JSON.parse(options);
+          } catch {
+            options = [];
+          }
+        }
+        return {
+          ...q,
+          options: Array.isArray(options) ? options : [],
+        };
+      })
+      .sort((a: any, b: any) => (a.order_index || 0) - (b.order_index || 0));
 
     return NextResponse.json({
       id: quiz.id,

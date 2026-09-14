@@ -104,6 +104,10 @@ export default function ShowdownGamePage() {
             sessionStorage.removeItem(`showdown_playerId_${pin}`);
             router.push("/showdown");
           }
+        } else if (msg.type === "JOIN_CONFIRMED" || msg.type === "JOIN_SUCCESS") {
+          if (msg.playerId) {
+            sessionStorage.setItem(`showdown_playerId_${pin}`, msg.playerId);
+          }
         } else if (msg.type === "HOST_DISCONNECTED" || msg.type === "JOIN_ERROR" || msg.type === "PLAYER_KICKED") {
           sessionStorage.removeItem(`showdown_nick_${pin}`);
           sessionStorage.removeItem(`showdown_avatar_${pin}`);
@@ -155,11 +159,27 @@ export default function ShowdownGamePage() {
 
   // Current player data
   const me = useMemo(() => {
-    if (!roomState?.players) return null;
-    return roomState.players.find(
-      (p) => p.nickname.toLowerCase() === nickname.toLowerCase()
+    if (!roomState?.players || !nickname) return null;
+    const storedPlayerId =
+      typeof window !== "undefined"
+        ? sessionStorage.getItem(`showdown_playerId_${pin}`)
+        : null;
+
+    return (
+      (storedPlayerId
+        ? roomState.players.find((p) => p.id === storedPlayerId)
+        : null) ||
+      roomState.players.find(
+        (p) =>
+          p.connected &&
+          p.nickname.trim().toLowerCase() === nickname.trim().toLowerCase()
+      ) ||
+      roomState.players.find(
+        (p) => p.nickname.trim().toLowerCase() === nickname.trim().toLowerCase()
+      ) ||
+      null
     );
-  }, [roomState?.players, nickname]);
+  }, [roomState?.players, nickname, pin]);
 
   const handleSelectOption = (optionIndex: number) => {
     if (submitted || roomState?.status !== "QUESTION" || roomState?.isPaused) return;
