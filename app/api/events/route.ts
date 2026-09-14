@@ -12,7 +12,7 @@ export async function GET() {
     const supabaseServer = getSupabaseServer();
     const { data, error } = await supabaseServer
       .from("events")
-      .select("id, title, date, time, location, image_url, event_link, status, description")
+      .select("id, title, date, time, location, image_url, event_link, status, description, is_registration_open")
       .in("status", ["Upcoming", "Ongoing", "Completed"])
       .order("created_at", { ascending: false });
 

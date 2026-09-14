@@ -17,6 +17,7 @@ interface EventItem {
   image_url: string | null;
   status: string;
   description: string;
+  is_registration_open?: boolean;
 }
 
 function formatDateNice(dateStr: string | null | undefined) {
@@ -309,12 +310,18 @@ export default function EventsPage() {
                       {event.status}
                     </span>
                     {event.status === 'Upcoming' && (
-                      <Link
-                        href="/events/register"
-                        className="rounded-full bg-blue-600 px-6 py-1.5 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-blue-700 shadow-md shadow-blue-600/20"
-                      >
-                        Register Now
-                      </Link>
+                      event.is_registration_open !== false ? (
+                        <Link
+                          href="/events/register"
+                          className="rounded-full bg-blue-600 px-6 py-1.5 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-blue-700 shadow-md shadow-blue-600/20"
+                        >
+                          Register Now
+                        </Link>
+                      ) : (
+                        <span className="rounded-full bg-gray-100 px-5 py-1.5 text-xs font-bold uppercase tracking-widest text-gray-400 border border-gray-200">
+                          Registration Closed
+                        </span>
+                      )
                     )}
                   </div>
                 </div>
