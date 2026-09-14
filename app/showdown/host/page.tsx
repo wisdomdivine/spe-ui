@@ -221,46 +221,46 @@ export default function ShowdownHostDashboardPage() {
             </div>
           ) : (
             <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+              <div className="overflow-x-auto w-full">
+                <table className="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
                   <thead>
-                    <tr className="border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                      <th className="px-6 py-5">Quiz Title</th>
-                      <th className="px-6 py-5">Category</th>
-                      <th className="px-6 py-5">Questions</th>
-                      <th className="px-6 py-5">Created</th>
-                      <th className="px-6 py-5 text-right">Actions</th>
+                    <tr className="border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
+                      <th className="px-6 py-5 whitespace-nowrap">Quiz Title</th>
+                      <th className="px-6 py-5 whitespace-nowrap">Category</th>
+                      <th className="px-6 py-5 whitespace-nowrap">Questions</th>
+                      <th className="px-6 py-5 whitespace-nowrap">Created</th>
+                      <th className="px-6 py-5 text-right whitespace-nowrap">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {filtered.map((quiz) => (
-                      <tr key={quiz.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="font-bold text-gray-950 text-sm">{quiz.title}</div>
+                      <tr key={quiz.id} className="hover:bg-gray-50/50 transition-colors whitespace-nowrap">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="font-bold text-gray-950 text-sm whitespace-nowrap">{quiz.title}</div>
                           {quiz.description && (
-                            <div className="text-xs text-gray-400 font-medium line-clamp-1 max-w-md mt-0.5">
+                            <div className="text-xs text-gray-400 font-medium whitespace-nowrap truncate max-w-sm mt-0.5">
                               {quiz.description}
                             </div>
                           )}
                         </td>
-                        <td className="px-6 py-4">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-1">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-1 whitespace-nowrap">
                             {quiz.category || "General"}
                           </span>
                         </td>
-                        <td className="px-6 py-4">
-                          <span className="text-xs font-bold text-gray-700">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-xs font-bold text-gray-700 whitespace-nowrap">
                             {quiz.question_count} {quiz.question_count === 1 ? "question" : "questions"}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-xs font-medium text-gray-400">
+                        <td className="px-6 py-4 text-xs font-medium text-gray-400 whitespace-nowrap">
                           {formatDate(quiz.created_at)}
                         </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
+                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-2 whitespace-nowrap">
                             <Link
                               href={`/showdown/${quiz.id}/host`}
-                              className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors cursor-pointer"
+                              className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors cursor-pointer whitespace-nowrap"
                             >
                               <IconPlayerPlay size={14} />
                               Host Live
