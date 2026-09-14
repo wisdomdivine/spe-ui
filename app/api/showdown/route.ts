@@ -11,22 +11,36 @@ export async function GET() {
   try {
     const { data: quizzes, error: qErr } = await supabase
       .from("showdown_quizzes")
-      .select("*, showdown_questions(count)")
+      .select("*, showdown_questions(count), showdown_history(id, hosted_at)")
       .order("created_at", { ascending: false });
 
     if (qErr) {
       return NextResponse.json({ error: qErr.message }, { status: 500 });
     }
 
-    const formatted = (quizzes || []).map((q: any) => ({
-      id: q.id,
-      title: q.title,
-      description: q.description,
-      category: q.category,
-      is_published: q.is_published,
-      created_at: q.created_at,
-      question_count: q.showdown_questions?.[0]?.count || 0,
-    }));
+    const formatted = (quizzes || []).map((q: any) => {
+      const historyList = q.showdown_history || [];
+      const timesPlayed = historyList.length;
+      let lastPlayedAt: string | null = null;
+      if (timesPlayed > 0) {
+        const sortedHistory = [...historyList].sort(
+          (a: any, b: any) => new Date(b.hosted_at).getTime() - new Date(a.hosted_at).getTime()
+        );
+        lastPlayedAt = sortedHistory[0]?.hosted_at || null;
+      }
+
+      return {
+        id: q.id,
+        title: q.title,
+        description: q.description,
+        category: q.category,
+        is_published: q.is_published,
+        created_at: q.created_at,
+        question_count: q.showdown_questions?.[0]?.count || 0,
+        times_played: timesPlayed,
+        last_played_at: lastPlayedAt,
+      };
+    });
 
     return NextResponse.json(formatted);
   } catch (err) {

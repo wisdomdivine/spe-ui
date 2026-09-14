@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useParams } from "next/navigation";
 import usePartySocket from "partysocket/react";
 import { QRCodeSVG } from "qrcode.react";
@@ -319,6 +319,47 @@ export default function ShowdownHostLivePage() {
   const sortedPlayers = useMemo(() => {
     return [...connectedPlayers].sort((a, b) => b.score - a.score);
   }, [connectedPlayers]);
+
+  // Auto-save game session results once when PODIUM is reached
+  const savedHistoryRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (roomState?.status === "PODIUM" && quiz && pin && savedHistoryRef.current !== pin) {
+      savedHistoryRef.current = pin;
+
+      const topThree = sortedPlayers.slice(0, 3).map((p, idx) => ({
+        rank: idx + 1,
+        nickname: p.nickname,
+        score: p.score,
+        avatarType: p.avatarType,
+        avatarColor: p.avatarColor,
+      }));
+
+      const fullLeaderboard = sortedPlayers.map((p, idx) => ({
+        rank: idx + 1,
+        nickname: p.nickname,
+        score: p.score,
+        streak: p.streak,
+        avatarType: p.avatarType,
+        avatarColor: p.avatarColor,
+      }));
+
+      fetch("/api/showdown/history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          quiz_id: quiz.id,
+          quiz_title: quiz.title,
+          pin: pin,
+          total_players: sortedPlayers.length,
+          top_three: topThree,
+          players_leaderboard: fullLeaderboard,
+        }),
+      }).catch((err) => {
+        console.error("Failed to auto-save game session history:", err);
+      });
+    }
+  }, [roomState?.status, quiz, pin, sortedPlayers]);
 
   if (loadingQuiz) {
     return (
