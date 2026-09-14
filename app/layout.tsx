@@ -52,10 +52,10 @@ export const metadata: Metadata = {
     url: SITE_URL,
     images: [
       {
-        url: "/og-icon.png",
-        width: 512,
-        height: 512,
-        alt: "SPE University of Ibadan Logo",
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "SPE University of Ibadan",
       },
     ],
   },
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
-    images: ["/og-icon.png"],
+    images: ["/twitter-image"],
   },
 
   /* ── Icons (file-convention handles favicon.ico, apple-icon.png, icon-*.png) ── */
