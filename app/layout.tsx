@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Host_Grotesk } from "next/font/google";
 import Script from "next/script";
+import ScreenshotProtection from "@/components/ScreenshotProtection";
 import "./globals.css";
 
 const hostGrotesk = Host_Grotesk({
@@ -166,6 +167,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(eduJsonLd) }}
         />
+        <ScreenshotProtection />
         {children}
       </body>
     </html>

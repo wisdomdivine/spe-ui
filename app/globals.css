@@ -99,3 +99,19 @@ article.prose figure.image-figure figcaption {
   font-style: italic;
   color: #6b7280;
 }
+
+/* ── Anti-Screenshot & Screen Capture Protection ── */
+@media print {
+  html, body {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+  }
+}
+
+img, svg, video, canvas {
+  -webkit-touch-callout: none !important;
+  -webkit-user-drag: none !important;
+  user-drag: none !important;
+}
+
