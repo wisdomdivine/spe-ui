@@ -57,6 +57,7 @@ interface Player {
 interface RoomState {
   pin: string;
   quizTitle: string;
+  isInitialized?: boolean;
   status: "LOBBY" | "COUNTDOWN" | "QUESTION" | "REVEAL" | "LEADERBOARD" | "PODIUM";
   progressionMode?: ProgressionMode;
   isPaused?: boolean;
@@ -173,7 +174,7 @@ export default function ShowdownHostLivePage() {
         })
       );
     }
-  }, [quiz, socket]);
+  }, [quiz, socket, roomState?.isInitialized]);
 
   // Handle countdown animation (3... 2... 1...)
   useEffect(() => {
@@ -768,8 +769,8 @@ export default function ShowdownHostLivePage() {
             {/* Option Response Breakdown */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {roomState.currentQuestion.options.map((opt, idx) => {
-                const isCorrect = String(opt.id) === String(roomState.correctOptionId);
-                const count = roomState.choiceDistribution?.[opt.id] || 0;
+                const isCorrect = String(opt.id) === String(roomState.correctOptionId) || opt.is_correct === true;
+                const count = (roomState.choiceDistribution?.[opt.id] ?? roomState.choiceDistribution?.[idx] ?? roomState.choiceDistribution?.[String(idx)]) || 0;
                 const totalAnswers = roomState.answersCount || 1;
                 const percentage = Math.round((count / totalAnswers) * 100);
                 const labels = ["A", "B", "C", "D"];

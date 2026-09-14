@@ -60,6 +60,8 @@ export interface RoomState {
   answersCount: number;
   choiceDistribution: Record<string | number, number>;
   correctOptionId: string | number | null;
+  isInitialized: boolean;
+  hostConnectionId: string | null;
 }
 
 export class ShowdownRoom extends Server {
@@ -81,6 +83,8 @@ export class ShowdownRoom extends Server {
         answersCount: 0,
         choiceDistribution: {},
         correctOptionId: null,
+        isInitialized: false,
+        hostConnectionId: null,
       };
     }
   }
@@ -102,6 +106,22 @@ export class ShowdownRoom extends Server {
 
   onClose(conn: Connection) {
     this.initState();
+    // If the disconnected connection was the host, end the active session
+    if (this.state.hostConnectionId && conn.id === this.state.hostConnectionId) {
+      this.state.isInitialized = false;
+      this.state.hostConnectionId = null;
+      this.state.status = "LOBBY";
+      this.state.questions = [];
+      this.state.players = {};
+      this.broadcast(
+        JSON.stringify({
+          type: "HOST_DISCONNECTED",
+          message: "The host has disconnected or refreshed. Game session ended.",
+        })
+      );
+      return;
+    }
+
     // Mark disconnected if it's a player
     if (this.state.players[conn.id]) {
       this.state.players[conn.id].connected = false;
@@ -118,6 +138,8 @@ export class ShowdownRoom extends Server {
       switch (data.type) {
         // Host initializes quiz questions
         case "HOST_INIT": {
+          this.state.hostConnectionId = conn.id;
+          this.state.isInitialized = true;
           this.state.quizTitle = data.quizTitle || "SPE Showdown";
           this.state.questions = data.questions || [];
           this.state.status = "LOBBY";
@@ -165,9 +187,25 @@ export class ShowdownRoom extends Server {
 
         // Player joins lobby with nickname
         case "PLAYER_JOIN": {
+          // Reject immediately if room is not hosted or not initialized
+          if (
+            !this.state.isInitialized ||
+            !this.state.hostConnectionId ||
+            !this.state.questions ||
+            this.state.questions.length === 0
+          ) {
+            conn.send(
+              JSON.stringify({
+                type: "JOIN_ERROR",
+                message: "Game PIN not found or session has ended. Please check the PIN on the host screen.",
+              })
+            );
+            return;
+          }
+
           const rawNick = (data.nickname || "").trim();
           if (!rawNick) {
-            conn.send(JSON.stringify({ type: "ERROR", message: "Nickname cannot be empty." }));
+            conn.send(JSON.stringify({ type: "JOIN_ERROR", message: "Nickname cannot be empty." }));
             return;
           }
 
@@ -248,8 +286,39 @@ export class ShowdownRoom extends Server {
           if (!currentQ) return;
 
           const selectedOptionId = data.optionId;
+          const selectedOptionIndex =
+            typeof data.optionIndex === "number"
+              ? data.optionIndex
+              : typeof selectedOptionId === "number" && selectedOptionId >= 0 && selectedOptionId < currentQ.options.length
+              ? selectedOptionId
+              : -1;
+
+          // Resolve chosen option cleanly by index or ID
+          let selectedOption = null;
+          if (
+            typeof selectedOptionIndex === "number" &&
+            selectedOptionIndex >= 0 &&
+            selectedOptionIndex < currentQ.options.length
+          ) {
+            selectedOption = currentQ.options[selectedOptionIndex];
+          } else if (selectedOptionId !== undefined && selectedOptionId !== null) {
+            selectedOption =
+              currentQ.options.find((o) => String(o.id) === String(selectedOptionId)) || null;
+          }
+
           const correctOption = currentQ.options.find((o) => o.is_correct);
-          const isCorrect = correctOption ? String(correctOption.id) === String(selectedOptionId) : false;
+          const correctOptionIndex = currentQ.options.findIndex((o) => o.is_correct);
+
+          let isCorrect = false;
+          if (selectedOption) {
+            isCorrect = Boolean(selectedOption.is_correct);
+          } else if (correctOption) {
+            if (String(correctOption.id) === String(selectedOptionId)) {
+              isCorrect = true;
+            } else if (correctOptionIndex !== -1 && selectedOptionIndex === correctOptionIndex) {
+              isCorrect = true;
+            }
+          }
 
           // Calculate score based on response speed
           const elapsedSeconds = (Date.now() - this.state.questionStartedAt) / 1000;
@@ -281,19 +350,17 @@ export class ShowdownRoom extends Server {
           player.lastPoints = pointsEarned;
           player.hasAnswered = true;
 
-          // Track distribution
-          this.state.choiceDistribution[selectedOptionId] =
-            (this.state.choiceDistribution[selectedOptionId] || 0) + 1;
+          // Track distribution (by option ID and index)
+          const distKey = selectedOption ? selectedOption.id : (selectedOptionId ?? selectedOptionIndex);
+          this.state.choiceDistribution[distKey] =
+            (this.state.choiceDistribution[distKey] || 0) + 1;
           this.state.answersCount = Object.values(this.state.players).filter((p) => p.hasAnswered).length;
 
-          // Send confirmation back to player
+          // Send confirmation back to player WITHOUT revealing isCorrect/points yet
           conn.send(
             JSON.stringify({
               type: "ANSWER_CONFIRMED",
-              isCorrect,
-              pointsEarned,
-              newScore: player.score,
-              streak: player.streak,
+              hasAnswered: true,
             })
           );
 
@@ -411,6 +478,7 @@ export class ShowdownRoom extends Server {
     return {
       pin: this.state.pin,
       quizTitle: this.state.quizTitle,
+      isInitialized: this.state.isInitialized,
       status: this.state.status,
       progressionMode: this.state.progressionMode,
       isPaused: this.state.isPaused,
@@ -431,19 +499,26 @@ export class ShowdownRoom extends Server {
             })),
           }
         : null,
-      players: Object.values(this.state.players).map((p) => ({
-        id: p.id,
-        nickname: p.nickname,
-        avatarType: p.avatarType || "blobby",
-        avatarColor: p.avatarColor || "#2563EB",
-        score: p.score,
-        streak: p.streak,
-        lastPoints: p.lastPoints,
-        lastAnswerCorrect: p.lastAnswerCorrect,
-        hasAnswered: p.hasAnswered,
-        connected: p.connected,
-        rank: p.rank,
-      })),
+      players: Object.values(this.state.players).map((p) => {
+        const isRevealOrLater =
+          this.state.status === "REVEAL" ||
+          this.state.status === "LEADERBOARD" ||
+          this.state.status === "PODIUM";
+
+        return {
+          id: p.id,
+          nickname: p.nickname,
+          avatarType: p.avatarType || "blobby",
+          avatarColor: p.avatarColor || "#2563EB",
+          score: isRevealOrLater ? p.score : p.score - (p.hasAnswered ? p.lastPoints : 0),
+          streak: p.streak,
+          lastPoints: isRevealOrLater ? p.lastPoints : 0,
+          lastAnswerCorrect: isRevealOrLater ? p.lastAnswerCorrect : null,
+          hasAnswered: p.hasAnswered,
+          connected: p.connected,
+          rank: p.rank,
+        };
+      }),
       answersCount: this.state.answersCount,
       choiceDistribution: this.state.status === "REVEAL" ? this.state.choiceDistribution : {},
       correctOptionId: this.state.status === "REVEAL" ? this.state.correctOptionId : null,

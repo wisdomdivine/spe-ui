@@ -46,6 +46,7 @@ interface Player {
 interface RoomState {
   pin: string;
   quizTitle: string;
+  isInitialized?: boolean;
   status: "LOBBY" | "COUNTDOWN" | "QUESTION" | "REVEAL" | "LEADERBOARD" | "PODIUM";
   progressionMode?: "MANUAL" | "AUTO";
   isPaused?: boolean;
@@ -95,6 +96,20 @@ export default function ShowdownGamePage() {
         const msg = JSON.parse(event.data);
         if (msg.type === "SYNC_STATE" || msg.type === "STATE_UPDATE") {
           setRoomState(msg.state);
+
+          if (msg.state && msg.state.isInitialized === false && msg.state.status !== "PODIUM") {
+            sessionStorage.removeItem(`showdown_nick_${pin}`);
+            sessionStorage.removeItem(`showdown_avatar_${pin}`);
+            sessionStorage.removeItem(`showdown_color_${pin}`);
+            sessionStorage.removeItem(`showdown_playerId_${pin}`);
+            router.push("/showdown");
+          }
+        } else if (msg.type === "HOST_DISCONNECTED" || msg.type === "JOIN_ERROR" || msg.type === "PLAYER_KICKED") {
+          sessionStorage.removeItem(`showdown_nick_${pin}`);
+          sessionStorage.removeItem(`showdown_avatar_${pin}`);
+          sessionStorage.removeItem(`showdown_color_${pin}`);
+          sessionStorage.removeItem(`showdown_playerId_${pin}`);
+          router.push("/showdown");
         }
       } catch (err) {
         console.error("Socket parse error:", err);
@@ -146,16 +161,21 @@ export default function ShowdownGamePage() {
     );
   }, [roomState?.players, nickname]);
 
-  const handleSelectOption = (optionId: number | string) => {
+  const handleSelectOption = (optionIndex: number) => {
     if (submitted || roomState?.status !== "QUESTION" || roomState?.isPaused) return;
 
-    setSelectedOptionId(optionId);
+    const currentQ = roomState?.currentQuestion;
+    const targetOption = currentQ?.options?.[optionIndex];
+    const optionId = targetOption ? targetOption.id : optionIndex;
+
+    setSelectedOptionId(optionIndex);
     setSubmitted(true);
 
     socket.send(
       JSON.stringify({
         type: "SUBMIT_ANSWER",
         optionId,
+        optionIndex,
       })
     );
   };
@@ -293,7 +313,7 @@ export default function ShowdownGamePage() {
                   <motion.button
                     key={opt.id}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => handleSelectOption(opt.id + 1)}
+                    onClick={() => handleSelectOption(opt.id)}
                     className={`rounded-[1.75rem] sm:rounded-[2rem] border ${opt.border} ${opt.bg} ${opt.hoverBg} text-white flex flex-col items-center justify-center gap-2 p-3 sm:p-4 transition-transform cursor-pointer touch-manipulation`}
                     style={{ WebkitTapHighlightColor: "transparent" }}
                   >

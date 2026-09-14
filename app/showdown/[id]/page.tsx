@@ -21,6 +21,7 @@ import { PARTYKIT_HOST, CHARACTER_SKINS } from "@/lib/showdown";
 interface RoomState {
   pin: string;
   quizTitle: string;
+  isInitialized?: boolean;
   status: "LOBBY" | "COUNTDOWN" | "QUESTION" | "REVEAL" | "LEADERBOARD" | "PODIUM";
   players: any[];
 }
@@ -47,6 +48,16 @@ export default function ShowdownJoinPage() {
         if (msg.type === "SYNC_STATE" || msg.type === "STATE_UPDATE") {
           setRoomState(msg.state);
 
+          if (msg.state && msg.state.isInitialized === false) {
+            setHasJoined(false);
+            sessionStorage.removeItem(`showdown_nick_${pin}`);
+            sessionStorage.removeItem(`showdown_avatar_${pin}`);
+            sessionStorage.removeItem(`showdown_color_${pin}`);
+            sessionStorage.removeItem(`showdown_playerId_${pin}`);
+            setError("Game PIN not found or session has ended.");
+            return;
+          }
+
           // If game is in progress and player has joined, route to controller screen
           if (
             hasJoined &&
@@ -60,17 +71,38 @@ export default function ShowdownJoinPage() {
         } else if (msg.type === "JOIN_CONFIRMED" || msg.type === "JOIN_SUCCESS") {
           setLoading(false);
           setHasJoined(true);
+          setError("");
           sessionStorage.setItem(`showdown_nick_${pin}`, nickname);
           sessionStorage.setItem(`showdown_avatar_${pin}`, selectedType);
           sessionStorage.setItem(`showdown_color_${pin}`, selectedColor);
           if (msg.playerId) {
             sessionStorage.setItem(`showdown_playerId_${pin}`, msg.playerId);
           }
+        } else if (msg.type === "HOST_DISCONNECTED") {
+          setLoading(false);
+          setHasJoined(false);
+          sessionStorage.removeItem(`showdown_nick_${pin}`);
+          sessionStorage.removeItem(`showdown_avatar_${pin}`);
+          sessionStorage.removeItem(`showdown_color_${pin}`);
+          sessionStorage.removeItem(`showdown_playerId_${pin}`);
+          setError(msg.message || "The host has disconnected. Game session ended.");
+          setTimeout(() => {
+            router.push("/showdown");
+          }, 2000);
         } else if (msg.type === "JOIN_ERROR" || msg.type === "ERROR") {
           setLoading(false);
+          setHasJoined(false);
+          sessionStorage.removeItem(`showdown_nick_${pin}`);
+          sessionStorage.removeItem(`showdown_avatar_${pin}`);
+          sessionStorage.removeItem(`showdown_color_${pin}`);
+          sessionStorage.removeItem(`showdown_playerId_${pin}`);
           setError(msg.message || "Failed to join room.");
         } else if (msg.type === "PLAYER_KICKED") {
           setHasJoined(false);
+          sessionStorage.removeItem(`showdown_nick_${pin}`);
+          sessionStorage.removeItem(`showdown_avatar_${pin}`);
+          sessionStorage.removeItem(`showdown_color_${pin}`);
+          sessionStorage.removeItem(`showdown_playerId_${pin}`);
           setError("You were removed by the host.");
         }
       } catch (err) {
@@ -93,7 +125,7 @@ export default function ShowdownJoinPage() {
       if (savedAvatar) setSelectedType(savedAvatar);
       if (savedColor) setSelectedColor(savedColor);
 
-      if (savedNick && !hasJoined && socket.readyState === WebSocket.OPEN) {
+      if (savedNick && !hasJoined && socket.readyState === WebSocket.OPEN && roomState?.isInitialized) {
         setNickname(savedNick);
         socket.send(
           JSON.stringify({
@@ -105,7 +137,7 @@ export default function ShowdownJoinPage() {
         );
       }
     }
-  }, [socket.readyState, pin, hasJoined, selectedType, selectedColor]);
+  }, [socket.readyState, pin, hasJoined, selectedType, selectedColor, roomState?.isInitialized]);
 
   // If status changes while in waiting room
   useEffect(() => {
@@ -124,6 +156,11 @@ export default function ShowdownJoinPage() {
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (roomState && roomState.isInitialized === false) {
+      setError("Game PIN not found or session has ended. Please check the PIN on the host screen.");
+      return;
+    }
 
     const cleanNick = nickname.trim();
     if (!cleanNick) {
