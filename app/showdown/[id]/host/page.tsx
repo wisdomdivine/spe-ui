@@ -88,6 +88,7 @@ export default function ShowdownHostLivePage() {
   const [loadingQuiz, setLoadingQuiz] = useState(true);
   const [quizError, setQuizError] = useState("");
 
+  const [progressionMode, setProgressionMode] = useState<ProgressionMode>("MANUAL");
   const [roomState, setRoomState] = useState<RoomState | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(20);
   const [autoAdvanceTime, setAutoAdvanceTime] = useState<number>(5);
@@ -98,11 +99,26 @@ export default function ShowdownHostLivePage() {
   const socket = usePartySocket({
     host: PARTYKIT_HOST,
     room: pin,
+    onOpen() {
+      if (quiz) {
+        socket.send(
+          JSON.stringify({
+            type: "HOST_INIT",
+            quizTitle: quiz.title,
+            questions: quiz.questions,
+            progressionMode: progressionMode,
+          })
+        );
+      }
+    },
     onMessage(event) {
       try {
         const msg = JSON.parse(event.data);
         if (msg.type === "SYNC_STATE" || msg.type === "STATE_UPDATE") {
           setRoomState(msg.state);
+          if (msg.state?.progressionMode) {
+            setProgressionMode(msg.state.progressionMode);
+          }
         }
       } catch (err) {
         console.error("PartySocket parse error:", err);
@@ -153,7 +169,7 @@ export default function ShowdownHostLivePage() {
           type: "HOST_INIT",
           quizTitle: quiz.title,
           questions: quiz.questions,
-          progressionMode: roomState?.progressionMode || "MANUAL",
+          progressionMode: progressionMode,
         })
       );
     }
@@ -250,10 +266,18 @@ export default function ShowdownHostLivePage() {
   };
 
   const handleStartGame = () => {
-    socket?.send(JSON.stringify({ type: "START_GAME" }));
+    socket?.send(
+      JSON.stringify({
+        type: "START_GAME",
+        questions: quiz?.questions || [],
+        progressionMode: progressionMode,
+      })
+    );
   };
 
   const handleSetProgressionMode = (mode: ProgressionMode) => {
+    setProgressionMode(mode);
+    setRoomState((prev) => (prev ? { ...prev, progressionMode: mode } : null));
     socket?.send(JSON.stringify({ type: "SET_PROGRESSION_MODE", mode }));
   };
 
@@ -483,14 +507,14 @@ export default function ShowdownHostLivePage() {
                     type="button"
                     onClick={() => handleSetProgressionMode("MANUAL")}
                     className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                      (roomState?.progressionMode || "MANUAL") === "MANUAL"
+                      (roomState?.progressionMode || progressionMode) === "MANUAL"
                         ? "bg-white border-blue-600 ring-2 ring-blue-600/10"
                         : "bg-white border-gray-200 hover:border-gray-300"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-black text-gray-900">Host Paced</span>
-                      {(roomState?.progressionMode || "MANUAL") === "MANUAL" && (
+                      {(roomState?.progressionMode || progressionMode) === "MANUAL" && (
                         <span className="w-2 h-2 rounded-full bg-blue-600" />
                       )}
                     </div>
@@ -504,14 +528,14 @@ export default function ShowdownHostLivePage() {
                     type="button"
                     onClick={() => handleSetProgressionMode("AUTO")}
                     className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                      roomState?.progressionMode === "AUTO"
+                      (roomState?.progressionMode || progressionMode) === "AUTO"
                         ? "bg-white border-blue-600 ring-2 ring-blue-600/10"
                         : "bg-white border-gray-200 hover:border-gray-300"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-black text-gray-900">Auto-Progress</span>
-                      {roomState?.progressionMode === "AUTO" && (
+                      {(roomState?.progressionMode || progressionMode) === "AUTO" && (
                         <span className="w-2 h-2 rounded-full bg-blue-600" />
                       )}
                     </div>
@@ -526,11 +550,13 @@ export default function ShowdownHostLivePage() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <button
                   onClick={handleStartGame}
-                  disabled={connectedPlayers.length === 0}
+                  disabled={!quiz || !quiz.questions || quiz.questions.length === 0}
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <IconPlayerPlay size={16} />
-                  Start Game ({connectedPlayers.length} Joined)
+                  {connectedPlayers.length === 0
+                    ? "Start Game (0 Joined)"
+                    : `Start Game (${connectedPlayers.length} Joined)`}
                 </button>
               </div>
             </div>

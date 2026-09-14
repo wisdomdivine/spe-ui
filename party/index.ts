@@ -107,21 +107,21 @@ export default class ShowdownRoom implements Party.Server {
           this.state.quizTitle = data.quizTitle || "SPE Showdown";
           this.state.questions = data.questions || [];
           this.state.status = "LOBBY";
-          this.state.progressionMode = data.progressionMode === "AUTO" ? "AUTO" : "MANUAL";
+          this.state.progressionMode = data.progressionMode === "AUTO" || data.mode === "AUTO" ? "AUTO" : "MANUAL";
           this.state.isPaused = false;
           this.state.pausedAt = 0;
           this.state.currentQuestionIndex = 0;
-          this.state.players = {};
+          if (!this.state.players) {
+            this.state.players = {};
+          }
           this.broadcastState();
           break;
         }
 
         // Host toggles progression mode in Lobby
         case "SET_PROGRESSION_MODE": {
-          if (this.state.status === "LOBBY") {
-            this.state.progressionMode = data.mode === "AUTO" ? "AUTO" : "MANUAL";
-            this.broadcastState();
-          }
+          this.state.progressionMode = data.mode === "AUTO" ? "AUTO" : "MANUAL";
+          this.broadcastState();
           break;
         }
 
@@ -200,6 +200,12 @@ export default class ShowdownRoom implements Party.Server {
 
         // Host starts the game
         case "START_GAME": {
+          if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
+            this.state.questions = data.questions;
+          }
+          if (data.progressionMode) {
+            this.state.progressionMode = data.progressionMode === "AUTO" ? "AUTO" : "MANUAL";
+          }
           if (this.state.questions.length === 0) return;
           this.state.status = "COUNTDOWN";
           this.state.currentQuestionIndex = 0;
