@@ -2,8 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Host_Grotesk } from "next/font/google";
 import Script from "next/script";
 import ScreenshotProtection from "@/components/ScreenshotProtection";
-import { ThemeProvider } from "@/components/ThemeProvider";
-import ThemeToggle from "@/components/ThemeToggle";
 import "./globals.css";
 
 const hostGrotesk = Host_Grotesk({
@@ -107,7 +105,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  colorScheme: "light dark",
+  colorScheme: "light",
 };
 
 export default function RootLayout({
@@ -146,26 +144,21 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                var t = localStorage.getItem('spe_theme');
-                if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                  document.documentElement.classList.add('dark');
-                  document.documentElement.setAttribute('data-theme', 'dark');
-                } else {
-                  document.documentElement.classList.remove('dark');
-                  document.documentElement.setAttribute('data-theme', 'light');
-                }
+                localStorage.removeItem('spe_theme');
+                document.documentElement.classList.remove('dark');
+                document.documentElement.setAttribute('data-theme', 'light');
               } catch(e) {}
             `,
           }}
         />
       </head>
-      <body className={`${hostGrotesk.variable} antialiased transition-colors duration-300`}>
+      <body className={`${hostGrotesk.variable} antialiased`}>
         {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-P4Z0V881XE"
@@ -187,11 +180,8 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(eduJsonLd) }}
         />
-        <ThemeProvider>
-          <ScreenshotProtection />
-          <ThemeToggle />
-          {children}
-        </ThemeProvider>
+        <ScreenshotProtection />
+        {children}
       </body>
     </html>
   );
