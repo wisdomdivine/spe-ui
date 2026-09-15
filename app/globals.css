@@ -97,21 +97,6 @@ article.prose figure.image-figure figcaption {
   margin-top: 0.5rem;
   font-size: 0.875rem;
   font-style: italic;
-  color: #6b7280;
 }
 
-/* ── Anti-Screenshot & Screen Capture Protection ── */
-@media print {
-  html, body {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-  }
-}
-
-img, svg, video, canvas {
-  -webkit-touch-callout: none !important;
-  -webkit-user-drag: none !important;
-  user-drag: none !important;
-}
 

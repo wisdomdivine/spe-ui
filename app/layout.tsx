@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Host_Grotesk } from "next/font/google";
 import Script from "next/script";
-import ScreenshotProtection from "@/components/ScreenshotProtection";
 import "./globals.css";
 
 const hostGrotesk = Host_Grotesk({
@@ -145,19 +144,6 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                localStorage.removeItem('spe_theme');
-                document.documentElement.classList.remove('dark');
-                document.documentElement.setAttribute('data-theme', 'light');
-              } catch(e) {}
-            `,
-          }}
-        />
-      </head>
       <body className={`${hostGrotesk.variable} antialiased`}>
         {/* Google Analytics */}
         <Script
@@ -180,7 +166,6 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(eduJsonLd) }}
         />
-        <ScreenshotProtection />
         {children}
       </body>
     </html>
