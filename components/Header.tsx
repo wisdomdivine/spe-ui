@@ -6,9 +6,16 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { IconMenu2, IconX, IconChevronDown } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "./ThemeProvider";
 
-export default function Header({ isDark = false }: { isDark?: boolean }) {
+export default function Header({ isDark: propIsDark }: { isDark?: boolean }) {
   const pathname = usePathname();
+  let themeContext: { theme: string } | null = null;
+  try {
+    themeContext = useTheme();
+  } catch {}
+
+  const isDark = propIsDark !== undefined ? propIsDark : themeContext?.theme === "dark";
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
