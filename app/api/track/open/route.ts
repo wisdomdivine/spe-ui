@@ -15,11 +15,20 @@ const PIXEL = Buffer.from(
  */
 export async function GET(req: NextRequest) {
   const queueId = req.nextUrl.searchParams.get("id");
+  const isGuest = req.nextUrl.searchParams.get("guest") === "1";
 
   if (queueId) {
     try {
       const supabase = getSupabaseServer();
-      await supabase.from("email_opens").insert({ queue_id: queueId });
+      if (isGuest) {
+        await supabase.from("guest_email_opens").insert({ queue_id: queueId });
+      } else {
+        const { error } = await supabase.from("email_opens").insert({ queue_id: queueId });
+        if (error) {
+          // Fallback if queueId is in guest queue
+          await supabase.from("guest_email_opens").insert({ queue_id: queueId });
+        }
+      }
     } catch {
       // Never fail the pixel - analytics is best-effort
     }
