@@ -5,10 +5,9 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { IconChecklist, IconCalendar, IconClock, IconUsers, IconChevronRight, IconShieldCheck, IconLoader2 } from "@tabler/icons-react";
+import { IconChecklist, IconCalendar, IconClock, IconUsers, IconChevronRight, IconLoader2 } from "@tabler/icons-react";
 import { computeElectionTimeTag } from "@/lib/election-status";
 
-/* ── Types ── */
 interface Election {
   id: string;
   title: string;
@@ -41,28 +40,14 @@ function formatDateNice(dateStr: string | null | undefined) {
   });
 }
 
-function formatTime12(time24: string | null | undefined) {
-  if (!time24 || typeof time24 !== "string") return "—";
-  const parts = time24.split(":");
-  const h = parts[0];
-  const m = parts[1] ?? "00";
-  const hour = parseInt(h, 10);
-  if (Number.isNaN(hour)) return "—";
-  const ampm = hour >= 12 ? "PM" : "AM";
-  const h12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-  return `${h12}:${m.padStart(2, "0")} ${ampm}`;
-}
-
-export default function ElectoralSessionPage() {
+export default function GuestElectoralSessionPage() {
   const [elections, setElections] = useState<Election[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
 
-  /** Background refresh only — must never touch `loading` (fixes stuck spinner if polls overlap initial fetch). */
   const LIST_REFRESH_MS = 30_000;
-  /** Must exceed server elections wait + counts + JSON (server uses up to ~120s per attempt + retry). */
-  const INITIAL_FETCH_MS = 150_000;
+  const INITIAL_FETCH_MS = 60_000;
 
   useEffect(() => {
     let cancelled = false;
@@ -73,7 +58,7 @@ export default function ElectoralSessionPage() {
       setLoading(true);
       setLoadError(null);
       try {
-        const res = await fetch("/api/elections", {
+        const res = await fetch("/api/guest/elections", {
           signal: ac.signal,
           cache: "no-store",
         });
@@ -101,7 +86,7 @@ export default function ElectoralSessionPage() {
             ? "Could not load elections in time. Check your connection and try again."
             : e instanceof Error
               ? e.message
-              : "Failed to load elections.";
+              : "Failed to load guest elections.";
         setLoadError(msg);
       } finally {
         clearTimeout(deadline);
@@ -120,7 +105,7 @@ export default function ElectoralSessionPage() {
   useEffect(() => {
     const id = setInterval(async () => {
       try {
-        const res = await fetch("/api/elections", { cache: "no-store" });
+        const res = await fetch("/api/guest/elections", { cache: "no-store" });
         if (!res.ok) return;
         const data: unknown = await res.json();
         if (Array.isArray(data)) setElections(data as Election[]);
@@ -153,7 +138,7 @@ export default function ElectoralSessionPage() {
                 <IconChecklist size={22} />
               </div>
               <span className="text-xs font-bold tracking-[0.2em] uppercase text-blue-600">
-                Electoral Session
+                Guest Electoral Session
               </span>
             </motion.div>
 
@@ -163,9 +148,9 @@ export default function ElectoralSessionPage() {
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-[38px] font-bold leading-[1.08] tracking-tight text-gray-900 sm:text-6xl lg:text-[72px]"
             >
-              Your Vote,
+              Guest Voting,
               <br />
-              Your Voice.
+              Secure &amp; Direct.
             </motion.h1>
 
             <motion.p
@@ -174,18 +159,16 @@ export default function ElectoralSessionPage() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="mt-6 max-w-xl text-lg font-medium leading-relaxed text-gray-500"
             >
-              Participate in SPE-UI elections securely and anonymously.
-              Your vote is confidential. No one can see who you voted for.
+              Participate in guest elections securely. Your ballot is cast anonymously and counted in real time.
             </motion.p>
 
-            {/* Trust badge */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.35 }}
               className="mt-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2.5"
             >
-              <span className="text-sm font-semibold text-emerald-700">Anonymous &amp; Secure Voting</span>
+              <span className="text-sm font-semibold text-emerald-700">Anonymous and Secure Voting</span>
             </motion.div>
           </div>
 
@@ -206,11 +189,11 @@ export default function ElectoralSessionPage() {
             </div>
           ) : elections.length === 0 ? (
             <div className="text-center py-24">
-              <p className="text-lg font-semibold text-gray-400">No elections available at the moment.</p>
+              <p className="text-lg font-semibold text-gray-400">No guest elections available at the moment.</p>
             </div>
           ) : (
             <>
-              {/* Active / Ongoing Elections */}
+              {/* Live Elections */}
               {ongoing.length > 0 && (
                 <section className="mb-16">
                   <div className="mb-6 flex items-center gap-3">
@@ -223,7 +206,7 @@ export default function ElectoralSessionPage() {
 
                   <div className="space-y-4">
                     {ongoing.map((election, i) => (
-                      <ElectionCard key={election.id} election={election} index={i} featured />
+                      <GuestElectionCard key={election.id} election={election} index={i} featured />
                     ))}
                   </div>
                 </section>
@@ -235,7 +218,7 @@ export default function ElectoralSessionPage() {
                   <h2 className="mb-6 text-lg font-bold text-gray-900">Upcoming Elections</h2>
                   <div className="space-y-4">
                     {upcoming.map((election, i) => (
-                      <ElectionCard key={election.id} election={election} index={i + ongoing.length} />
+                      <GuestElectionCard key={election.id} election={election} index={i + ongoing.length} />
                     ))}
                   </div>
                 </section>
@@ -247,7 +230,7 @@ export default function ElectoralSessionPage() {
                   <h2 className="mb-6 text-lg font-bold text-gray-500">Completed Elections</h2>
                   <div className="space-y-4">
                     {completed.map((election, i) => (
-                      <ElectionCard key={election.id} election={election} index={i + ongoing.length + upcoming.length} />
+                      <GuestElectionCard key={election.id} election={election} index={i + ongoing.length + upcoming.length} />
                     ))}
                   </div>
                 </section>
@@ -262,8 +245,7 @@ export default function ElectoralSessionPage() {
   );
 }
 
-/* ── Election Card ── */
-function ElectionCard({
+function GuestElectionCard({
   election,
   index,
   featured = false,
@@ -282,12 +264,11 @@ function ElectionCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.08 }}
-      className={`group relative overflow-hidden rounded-3xl border bg-white p-6 sm:p-8 transition-all duration-300 ${featured
-          ? "border-emerald-200 shadow-lg shadow-emerald-100/50 hover:shadow-xl hover:shadow-emerald-100/60"
-          : "border-gray-100 shadow-sm hover:shadow-lg hover:border-blue-100"
-        } ${isClickable ? "cursor-pointer" : ""}`}
+      className={`group relative overflow-hidden rounded-3xl border bg-white p-6 sm:p-8 transition-all duration-300 ${
+        featured ? "border-emerald-200" : "border-gray-100 hover:border-blue-100"
+      } ${isClickable ? "cursor-pointer" : ""}`}
     >
-      {/* Status + Live dot */}
+      {/* Status */}
       <div className="mb-4 flex items-center justify-between">
         {config ? (
           <div className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-bold ${config.bg} ${config.text}`}>
@@ -307,31 +288,31 @@ function ElectionCard({
         )}
       </div>
 
-      {/* Title + Description */}
+      {/* Title & Description */}
       <h3 className="text-xl font-bold text-gray-900 sm:text-2xl">{election.title}</h3>
       {election.description && (
         <p className="mt-2 text-sm font-medium leading-relaxed text-gray-500 line-clamp-2">{election.description}</p>
       )}
 
-      {/* Meta row */}
+      {/* Meta */}
       <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3">
         <div className="flex items-center gap-2 text-sm font-semibold text-gray-400">
           <IconCalendar size={15} />
           {formatDateNice(election.election_date)}
         </div>
-        <span className="flex items-center gap-1.5 font-medium">
+        <span className="flex items-center gap-1.5 font-medium text-sm text-gray-500">
           <IconClock size={15} />
           {election.start_time && election.end_time
             ? `${election.start_time.slice(0, 5)} - ${election.end_time.slice(0, 5)}`
             : "Time TBA"}
         </span>
-        <span className="flex items-center gap-1.5 font-medium">
+        <span className="flex items-center gap-1.5 font-medium text-sm text-gray-500">
           <IconUsers size={15} />
           <span>{election.positions_count} positions · {election.candidates_count} candidates</span>
         </span>
       </div>
 
-      {/* Turnout bar (only for ongoing/completed) */}
+      {/* Turnout */}
       {(timeTag === "Live" || election.status === "Completed") && (
         <div className="mt-5">
           <div className="mb-1.5 flex items-center justify-between">
@@ -344,10 +325,9 @@ function ElectionCard({
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
             <motion.div
-              className={`h-full rounded-full ${election.status === "Completed"
-                  ? "bg-gray-300"
-                  : "bg-gradient-to-r from-emerald-400 to-emerald-500"
-                }`}
+              className={`h-full rounded-full ${
+                election.status === "Completed" ? "bg-gray-300" : "bg-emerald-500"
+              }`}
               initial={{ width: 0 }}
               animate={{ width: `${turnout}%` }}
               transition={{ duration: 1, delay: 0.3 + index * 0.1, ease: "easeOut" }}
@@ -356,16 +336,15 @@ function ElectionCard({
         </div>
       )}
 
-      {/* CTA for ongoing */}
+      {/* Action */}
       {timeTag === "Live" && election.is_open && (
         <div className="mt-6 flex items-center gap-3">
-          <span className="rounded-full bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-200 transition-all group-hover:bg-blue-700 group-hover:shadow-xl group-hover:shadow-blue-300">
+          <span className="rounded-full bg-blue-600 px-6 py-3 text-sm font-bold text-white transition-all group-hover:bg-blue-700">
             Cast Your Vote
           </span>
         </div>
       )}
 
-      {/* Closed state message */}
       {!election.is_open && timeTag !== null && (
         <div className="mt-6 flex items-center gap-2">
           <div className="flex items-center gap-2 rounded-full bg-amber-50 border border-amber-200 px-5 py-2.5">
@@ -379,7 +358,7 @@ function ElectionCard({
 
   if (isClickable) {
     return (
-      <Link href={`/programs/electoral-session/${election.id}/auth`}>
+      <Link href={`/programs/guest-electoral-session/${election.id}/auth`}>
         {inner}
       </Link>
     );

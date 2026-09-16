@@ -21,6 +21,7 @@ interface Voter {
 
 interface VotingCrowdProps {
   electionId: string;
+  apiEndpoint?: string;
 }
 
 function hashString(str: string): number {
@@ -135,7 +136,7 @@ function BallotBoxScene({ activeSeed }: { activeSeed: number | null }) {
 }
 
 /* ── Main Component ── */
-export default function VotingCrowd({ electionId }: VotingCrowdProps) {
+export default function VotingCrowd({ electionId, apiEndpoint }: VotingCrowdProps) {
   const [voters, setVoters] = useState<Voter[]>([]);
   const [totalVoted, setTotalVoted] = useState(0);
   const [activeSeed, setActiveSeed] = useState<number | null>(null);
@@ -143,9 +144,11 @@ export default function VotingCrowd({ electionId }: VotingCrowdProps) {
   const isFirstLoad = useRef(true);
   const listRef = useRef<HTMLDivElement>(null);
 
+  const endpoint = apiEndpoint || `/api/elections/${electionId}/live-voters`;
+
   const fetchVoters = useCallback(async () => {
     try {
-      const res = await fetch(`/api/elections/${electionId}/live-voters`);
+      const res = await fetch(endpoint);
       if (!res.ok) return;
       const data = await res.json();
 

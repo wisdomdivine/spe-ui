@@ -14,6 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/membership", priority: 0.7, changeFrequency: "monthly" as const },
     { path: "/lms", priority: 0.6, changeFrequency: "monthly" as const },
     { path: "/programs/electoral-session", priority: 0.5, changeFrequency: "yearly" as const },
+    { path: "/programs/guest-electoral-session", priority: 0.5, changeFrequency: "yearly" as const },
     { path: "/programs/membership-spotlight", priority: 0.6, changeFrequency: "weekly" as const },
     { path: "/programs/resources", priority: 0.6, changeFrequency: "monthly" as const },
     { path: "/programs/sponsor", priority: 0.5, changeFrequency: "monthly" as const },
