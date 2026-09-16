@@ -216,7 +216,15 @@ export default function ShowdownGamePage() {
   const timeLimit = roomState?.currentQuestion?.time_limit || 20;
 
   return (
-    <div className="min-h-[100dvh] bg-[#0A0A0A] text-white flex flex-col font-sans select-none touch-manipulation">
+    <div
+      className="min-h-[100dvh] bg-[#0A0A0A] text-white flex flex-col font-sans select-none touch-manipulation selection:bg-transparent"
+      style={{
+        WebkitUserSelect: "none",
+        userSelect: "none",
+        WebkitTouchCallout: "none",
+        WebkitTapHighlightColor: "transparent",
+      }}
+    >
       {/* Top Mobile Status Header */}
       <header className="px-4 sm:px-6 py-3.5 border-b border-neutral-800 flex items-center justify-between bg-[#121212] sticky top-0 z-20">
         <div className="flex items-center gap-2">
@@ -324,18 +332,18 @@ export default function ShowdownGamePage() {
           </div>
         )}
 
-        {/* 3. QUESTION STATE (4 BOLD BRAND PADS + BIG TIMER) */}
+        {/* 3. QUESTION STATE (QUESTION TEXT + IMAGE + OPTIONS + TIMER) */}
         {currentStatus === "QUESTION" && (
-          <div className="w-full h-full flex flex-col justify-between py-1">
+          <div className="w-full h-full flex flex-col justify-start py-1">
             {/* Prominent Timer Bar for Player */}
             <div className="w-full mb-2 sm:mb-3">
               <div className="flex items-center justify-between px-1 mb-1.5">
-                <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 flex items-center gap-1.5 select-none">
                   <IconClock size={13} />
                   Time Left
                 </span>
                 <span
-                  className={`font-mono text-xs font-black px-2 py-0.5 rounded-md border ${
+                  className={`font-mono text-xs font-black px-2 py-0.5 rounded-md border select-none ${
                     playerTimeLeft <= 5
                       ? "bg-red-950/80 text-red-400 border-red-800 animate-pulse"
                       : "bg-neutral-900 text-white border-neutral-800"
@@ -356,40 +364,125 @@ export default function ShowdownGamePage() {
               </div>
             </div>
 
-            {!submitted ? (
-              <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5 h-[calc(100dvh-170px)] max-h-[500px] min-h-[280px]">
-                {OPTION_COLORS.map((opt) => (
-                  <motion.button
-                    key={opt.id}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleSelectOption(opt.id)}
-                    className={`rounded-[1.75rem] sm:rounded-[2rem] border ${opt.border} ${opt.bg} ${opt.hoverBg} text-white flex flex-col items-center justify-center gap-2 p-3 sm:p-4 transition-transform cursor-pointer touch-manipulation`}
-                    style={{ WebkitTapHighlightColor: "transparent" }}
+            {roomState?.currentQuestion ? (
+              <>
+                {/* Question Header & Card */}
+                <div className="w-full mb-3 space-y-1.5">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-blue-400 select-none">
+                      Question {(roomState?.currentQuestionIndex || 0) + 1} of {roomState?.totalQuestions || ""}
+                    </span>
+                    {roomState.currentQuestion.points !== undefined && (
+                      <span className="text-[10px] sm:text-xs font-mono font-bold text-gray-400 bg-neutral-900 px-2 py-0.5 rounded-md border border-neutral-800 select-none">
+                        {roomState.currentQuestion.points === 0
+                          ? "No points"
+                          : `${roomState.currentQuestion.points} pts`}
+                      </span>
+                    )}
+                  </div>
+
+                  <div
+                    className="w-full bg-[#141414] border border-neutral-800 rounded-2xl p-4 sm:p-5 text-center select-none shadow-sm"
+                    style={{
+                      WebkitUserSelect: "none",
+                      userSelect: "none",
+                      WebkitTouchCallout: "none",
+                      WebkitTapHighlightColor: "transparent",
+                    }}
                   >
-                    <span className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-black/25 flex items-center justify-center text-xl sm:text-2xl font-black">
-                      {opt.label}
-                    </span>
-                    <span className="text-[11px] sm:text-xs font-black uppercase tracking-widest opacity-80">
-                      Option {opt.label}
-                    </span>
-                  </motion.button>
-                ))}
-              </div>
-            ) : (
-              /* Answer Submitted Locked Screen */
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="my-auto flex flex-col items-center text-center p-8 rounded-[2.5rem] bg-[#121212] border border-neutral-800 w-full"
-              >
-                <div className="w-12 h-12 rounded-full bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 mb-4">
-                  <IconCheck size={24} strokeWidth={3} />
+                    {roomState.currentQuestion.image_url && (
+                      <div className="mb-3 rounded-xl overflow-hidden max-h-36 mx-auto flex items-center justify-center bg-black/40">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={roomState.currentQuestion.image_url}
+                          alt="Question media"
+                          className="max-h-36 object-contain pointer-events-none select-none"
+                          draggable={false}
+                        />
+                      </div>
+                    )}
+                    <h2
+                      className="text-sm sm:text-base md:text-lg font-bold text-white tracking-tight leading-snug select-none"
+                      style={{
+                        WebkitUserSelect: "none",
+                        userSelect: "none",
+                        WebkitTouchCallout: "none",
+                      }}
+                    >
+                      {roomState.currentQuestion.question_text}
+                    </h2>
+                  </div>
                 </div>
-                <h3 className="text-lg font-black text-white mb-1">Answer Submitted</h3>
-                <p className="text-xs text-gray-400 font-medium">
-                  Waiting for other attendees and timer to end...
-                </p>
-              </motion.div>
+
+                {/* Option Choices Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 w-full">
+                  {(roomState.currentQuestion.options && roomState.currentQuestion.options.length > 0
+                    ? roomState.currentQuestion.options
+                    : OPTION_COLORS.map((c) => ({ id: c.id, text: `Option ${c.label}` }))
+                  ).map((opt, idx) => {
+                    const color = OPTION_COLORS[idx % OPTION_COLORS.length];
+                    const label = ["A", "B", "C", "D"][idx] || color.label;
+                    const isSelected = selectedOptionId === idx || selectedOptionId === opt.id;
+
+                    return (
+                      <motion.button
+                        key={opt.id ?? idx}
+                        type="button"
+                        disabled={submitted || roomState?.isPaused}
+                        whileTap={!submitted && !roomState?.isPaused ? { scale: 0.98 } : undefined}
+                        onClick={() => handleSelectOption(idx)}
+                        className={`w-full rounded-2xl border ${color.border} ${color.bg} ${
+                          !submitted && !roomState?.isPaused ? color.hoverBg : ""
+                        } text-white flex items-center gap-3 p-3 sm:p-3.5 text-left transition-all select-none touch-manipulation cursor-pointer outline-none focus:outline-none focus:ring-0 ${
+                          submitted
+                            ? isSelected
+                              ? "ring-2 ring-white shadow-lg opacity-100"
+                              : "opacity-40"
+                            : "opacity-100"
+                        }`}
+                        style={{
+                          WebkitTapHighlightColor: "transparent",
+                          WebkitUserSelect: "none",
+                          userSelect: "none",
+                          WebkitTouchCallout: "none",
+                        }}
+                      >
+                        <span className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-black/25 flex items-center justify-center text-base sm:text-lg font-black shrink-0 select-none">
+                          {label}
+                        </span>
+                        <span className="text-xs sm:text-sm font-bold leading-snug flex-1 select-none break-words line-clamp-3">
+                          {opt.text}
+                        </span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+
+                {/* Answer Submitted Feedback */}
+                {submitted && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full mt-3 py-2.5 px-4 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center gap-2 text-center select-none"
+                    style={{
+                      WebkitUserSelect: "none",
+                      userSelect: "none",
+                      WebkitTouchCallout: "none",
+                    }}
+                  >
+                    <div className="w-4 h-4 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+                      <IconCheck size={12} strokeWidth={3} />
+                    </div>
+                    <span className="text-[11px] font-bold text-gray-300 select-none">
+                      Answer locked in! Waiting for timer to end...
+                    </span>
+                  </motion.div>
+                )}
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-center p-8 rounded-2xl bg-[#141414] border border-neutral-800 w-full my-auto">
+                <p className="text-xs text-gray-400">Loading question...</p>
+              </div>
             )}
           </div>
         )}
