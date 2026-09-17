@@ -332,7 +332,7 @@ export default function GuestVotePage() {
                                 {pos.title}
                               </p>
                               <p className="text-sm font-bold text-gray-900 mt-0.5">
-                                {isNone ? "None of the Candidates" : cand ? cand.name : "Not selected"}
+                                {isNone ? "Void" : cand ? cand.name : "Not selected"}
                               </p>
                             </div>
                             <span
@@ -459,7 +459,7 @@ export default function GuestVotePage() {
                         );
                       })}
 
-                      {/* None of the Above Card */}
+                      {/* Void Card */}
                       <div
                         onClick={() => handleSelectCandidate(NONE_OF_ABOVE_TOKEN)}
                         className={`rounded-3xl border p-6 transition-all cursor-pointer flex flex-col justify-between ${
@@ -470,13 +470,13 @@ export default function GuestVotePage() {
                       >
                         <div>
                           <div className="flex items-center gap-3 mb-2">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
-                              <IconAlertCircle size={20} />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-600 font-black">
+                              Ø
                             </div>
-                            <h3 className="text-sm font-bold text-gray-900">None of the Candidates</h3>
+                            <h3 className="text-sm font-bold text-gray-900">Void</h3>
                           </div>
                           <p className="text-xs text-gray-500 font-medium leading-relaxed">
-                            Abstain or choose not to vote for any candidate running for this position.
+                            Submit a blank preference for this position.
                           </p>
                         </div>
 

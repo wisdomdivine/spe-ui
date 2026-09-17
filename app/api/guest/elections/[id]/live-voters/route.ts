@@ -44,7 +44,7 @@ export async function GET(
       const voter = d.guest_voters as unknown as { id: string; name: string } | null;
       return {
         voter_id: d.voter_id,
-        name: showLiveVoterNames ? (voter?.name || "Guest Voter") : "Hidden voter",
+        name: showLiveVoterNames ? (voter?.name || "Guest Voter") : "Anonymous",
         voted_at: d.voted_at,
       };
     });
