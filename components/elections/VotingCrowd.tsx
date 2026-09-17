@@ -177,14 +177,14 @@ export default function VotingCrowd({ electionId, apiEndpoint }: VotingCrowdProp
         // Animate the most recent new voter dropping ballot
         setActiveSeed(newVoters[0].seed);
         setTimeout(() => setActiveSeed(null), 2600);
-
-        // Add new voters to the top of the list
-        setVoters((prev) => [...newVoters, ...prev].slice(0, 20));
       }
+
+      // Always update list with incoming data so privacy/name toggle changes reflect immediately
+      setVoters(incoming);
     } catch {
       // Silently ignore polling errors
     }
-  }, [electionId]);
+  }, [endpoint]);
 
   // Initial fetch + poll (gentle interval — each open vote page hits Supabase)
   useEffect(() => {
