@@ -305,11 +305,15 @@ export default function EventsPage() {
                   )}
                   <div className="mt-2 flex items-center gap-3">
                     <span className={`rounded-full px-5 py-1.5 text-xs font-bold uppercase tracking-widest ${
-                      event.status === 'Upcoming' ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-gray-100 text-gray-500 border border-gray-200'
+                      event.status === 'Ongoing'
+                        ? 'bg-blue-50 text-blue-600 border border-blue-100'
+                        : event.status === 'Upcoming'
+                        ? 'bg-green-50 text-green-600 border border-green-100'
+                        : 'bg-gray-100 text-gray-500 border border-gray-200'
                     }`}>
                       {event.status}
                     </span>
-                    {event.status === 'Upcoming' && (
+                    {(event.status === 'Upcoming' || event.status === 'Ongoing') && (
                       event.is_registration_open !== false ? (
                         <Link
                           href="/events/register"
