@@ -133,30 +133,31 @@ export default function GuestElectoralSessionPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="mb-8 flex items-center gap-3.5"
+              className="mb-10 flex items-center gap-4 sm:gap-5 flex-wrap"
             >
               <Image
                 src="/speui.png"
                 alt="SPE UI"
-                width={36}
-                height={28}
-                className="h-7 w-auto object-contain"
+                width={60}
+                height={45}
+                className="h-9 sm:h-11 w-auto object-contain"
+                priority
               />
-              <span className="text-gray-300 text-xs font-light select-none">/</span>
+              <span className="text-gray-300 text-base font-light select-none">/</span>
               <Image
-                src="/afas-logo.jpg"
+                src="/afas-logo.png"
                 alt="AFAS"
-                width={32}
-                height={32}
-                className="h-7 w-7 object-contain rounded-full"
+                width={60}
+                height={55}
+                className="h-12 w-12 sm:h-14 sm:w-14 object-contain"
+                priority
               />
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold tracking-widest uppercase text-gray-800">
+              <div className="flex flex-col justify-center pl-1">
+                <span className="text-xs sm:text-sm font-bold tracking-widest uppercase text-gray-900">
                   SPE UI x AFAS
                 </span>
-                <span className="text-xs text-gray-300">·</span>
-                <span className="text-xs text-gray-500 font-medium">
-                  Faculty of Arts
+                <span className="text-[11px] sm:text-xs text-gray-500 font-medium">
+                  Association of Faculty of Arts Students · University of Ibadan
                 </span>
               </div>
             </motion.div>

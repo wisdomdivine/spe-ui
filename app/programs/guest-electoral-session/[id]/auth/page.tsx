@@ -224,25 +224,30 @@ export default function GuestElectionAuthPage() {
           </Link>
 
           {/* Collaboration Lockup */}
-          <div className="mb-6 flex items-center justify-center gap-3">
+          <div className="mb-8 flex items-center justify-center gap-4">
             <Image
               src="/speui.png"
               alt="SPE UI"
-              width={32}
-              height={24}
-              className="h-6 w-auto object-contain"
+              width={50}
+              height={38}
+              className="h-8 w-auto object-contain"
             />
-            <span className="text-gray-300 text-xs font-light select-none">/</span>
+            <span className="text-gray-300 text-sm font-light select-none">/</span>
             <Image
-              src="/afas-logo.jpg"
+              src="/afas-logo.png"
               alt="AFAS"
-              width={26}
-              height={26}
-              className="h-6 w-6 object-contain rounded-full"
+              width={50}
+              height={46}
+              className="h-10 w-10 object-contain"
             />
-            <span className="text-xs font-bold tracking-widest uppercase text-gray-700">
-              SPE UI x AFAS
-            </span>
+            <div className="flex flex-col text-left">
+              <span className="text-xs font-bold tracking-widest uppercase text-gray-900">
+                SPE UI x AFAS
+              </span>
+              <span className="text-[10px] text-gray-500 font-medium">
+                Faculty of Arts
+              </span>
+            </div>
           </div>
 
           {/* Card */}
