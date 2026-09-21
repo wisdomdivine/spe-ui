@@ -26,6 +26,7 @@ export default function ElectionAuthPage() {
   const electionId = params?.id as string;
 
   const [electionTitle, setElectionTitle] = useState("");
+  const [voterAuthType, setVoterAuthType] = useState<"matric" | "email">("matric");
   const [step, setStep] = useState<"identify" | "otp">("identify");
   const [matric, setMatric] = useState("");
   const [email, setEmail] = useState("");
@@ -34,7 +35,7 @@ export default function ElectionAuthPage() {
   const [error, setError] = useState("");
   const [showEmail, setShowEmail] = useState(false);
   const [maskedEmail, setMaskedEmail] = useState("");
-  const [pendingVoter, setPendingVoter] = useState<{ voter_id: string; voter_name: string } | null>(null);
+  const [pendingVoter, setPendingVoter] = useState<{ voter_id: string; voter_name: string; matric_number?: string } | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
   const voterStorageKey = `voter_${electionId}`;
   const ballotStorageKey = `vote_progress_${electionId}`;
@@ -51,12 +52,13 @@ export default function ElectionAuthPage() {
     }
   }, [ballotStorageKey, electionId, router, voterStorageKey]);
 
-  // Fetch election title
+  // Fetch election details
   useEffect(() => {
     fetch(`/api/elections/${electionId}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.title) setElectionTitle(data.title);
+        if (data.voter_auth_type) setVoterAuthType(data.voter_auth_type);
       })
       .catch(() => {});
   }, [electionId]);
@@ -68,9 +70,13 @@ export default function ElectionAuthPage() {
     return () => clearTimeout(timer);
   }, [resendCooldown]);
 
-  // Validate matric against real API
+  // Validate identifier against real API
   const handleIdentify = async () => {
-    if (!matric.trim()) { setError("Enter your matric number."); return; }
+    const val = matric.trim();
+    if (!val) {
+      setError(voterAuthType === "email" ? "Enter your email address." : "Enter your matric number.");
+      return;
+    }
     setError("");
     setLoading(true);
 
@@ -78,7 +84,11 @@ export default function ElectionAuthPage() {
       const res = await fetch(`/api/elections/${electionId}/auth`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ matric_number: matric.trim() }),
+        body: JSON.stringify({
+          matric_number: val,
+          email: val,
+          identifier: val,
+        }),
       });
 
       const data = await res.json();
@@ -90,7 +100,11 @@ export default function ElectionAuthPage() {
       }
 
       // Store voter info temporarily (only saved to sessionStorage after OTP verification)
-      setPendingVoter({ voter_id: data.voter_id, voter_name: data.voter_name });
+      setPendingVoter({
+        voter_id: data.voter_id,
+        voter_name: data.voter_name,
+        matric_number: data.matric_number,
+      });
 
       if (data.otp_sent && data.masked_email) {
         setMaskedEmail(data.masked_email);
@@ -102,6 +116,7 @@ export default function ElectionAuthPage() {
         sessionStorage.setItem(voterStorageKey, JSON.stringify({
           voter_id: data.voter_id,
           voter_name: data.voter_name,
+          matric_number: data.matric_number,
         }));
         router.replace(`/programs/electoral-session/${electionId}/vote`);
       }
@@ -175,7 +190,11 @@ export default function ElectionAuthPage() {
       const res = await fetch(`/api/elections/${electionId}/auth`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ matric_number: matric.trim() }),
+        body: JSON.stringify({
+          matric_number: matric.trim(),
+          email: matric.trim(),
+          identifier: matric.trim(),
+        }),
       });
 
       const data = await res.json();
@@ -244,21 +263,29 @@ export default function ElectionAuthPage() {
                         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-600 text-xs font-black">1</span>
                         <h2 className="text-sm font-bold text-gray-900">Identify Yourself</h2>
                       </div>
-                      <p className="text-xs font-medium text-gray-400 ml-8">Enter your matric number to receive a one-time code.</p>
+                      <p className="text-xs font-medium text-gray-400 ml-8">
+                        {voterAuthType === "email"
+                          ? "Enter your accredited email address to receive a one-time code."
+                          : "Enter your matric number to receive a one-time code."}
+                      </p>
                     </div>
 
                     <div className="space-y-4">
                       <div>
                         <label className="mb-1.5 block text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                          Matric Number
+                          {voterAuthType === "email" ? "Accredited Email Address" : "Matric Number"}
                         </label>
                         <div className="relative">
-                          <IconHash size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                          {voterAuthType === "email" ? (
+                            <IconMail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                          ) : (
+                            <IconHash size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                          )}
                           <input
-                            type="text"
+                            type={voterAuthType === "email" ? "email" : "text"}
                             value={matric}
                             onChange={(e) => { setMatric(e.target.value); setError(""); }}
-                            placeholder="e.g. 220301"
+                            placeholder={voterAuthType === "email" ? "e.g. voter@student.ui.edu.ng" : "e.g. 220301"}
                             className="w-full rounded-xl border border-gray-200 py-3.5 pl-11 pr-4 text-sm font-medium text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             onKeyDown={(e) => e.key === "Enter" && handleIdentify()}
                           />

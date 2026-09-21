@@ -84,6 +84,7 @@ export async function GET(
       election_date: election.election_date,
       start_time: election.start_time,
       end_time: election.end_time,
+      voter_auth_type: election.voter_auth_type || "matric",
       positions,
       voters_count: votersRes.data?.length || 0,
       voted_count: votedRes.data?.length || 0,

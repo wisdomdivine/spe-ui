@@ -24,21 +24,12 @@ export async function POST(
   try {
     const { id: electionId } = await params;
     const body = await req.json();
-    const { matric_number } = body;
-
-    if (!matric_number?.trim()) {
-      return NextResponse.json(
-        { error: "Matric number is required." },
-        { status: 400 }
-      );
-    }
-
     const supabase = getSupabaseServer();
 
-    // 1. Check election exists and is open
+    // 1. Check election exists, is open, and get auth method
     const { data: election, error: elErr } = await supabase
       .from("guest_elections")
-      .select("id, title, is_open, status")
+      .select("id, title, is_open, status, voter_auth_type")
       .eq("id", electionId)
       .single();
 
@@ -56,16 +47,41 @@ export async function POST(
       );
     }
 
-    // 2. Find voter in guest_voters
-    const { data: voter, error: voterErr } = await supabase
+    const authType = election.voter_auth_type === "email" ? "email" : "matric";
+    const rawIdentifier = (
+      authType === "email"
+        ? (body.email || body.identifier || body.matric_number)
+        : (body.matric_number || body.identifier || body.email)
+    )?.trim();
+
+    if (!rawIdentifier) {
+      return NextResponse.json(
+        { error: authType === "email" ? "Email address is required." : "Matric number is required." },
+        { status: 400 }
+      );
+    }
+
+    // 2. Find voter in guest_voters by email or matric number
+    let voterQuery = supabase
       .from("guest_voters")
-      .select("id, name, matric_number, email")
-      .eq("matric_number", matric_number.trim())
-      .single();
+      .select("id, name, matric_number, email");
+
+    if (authType === "email") {
+      voterQuery = voterQuery.ilike("email", rawIdentifier);
+    } else {
+      voterQuery = voterQuery.eq("matric_number", rawIdentifier);
+    }
+
+    const { data: voter, error: voterErr } = await voterQuery.maybeSingle();
 
     if (voterErr || !voter) {
       return NextResponse.json(
-        { error: "No guest voter found with this matric number." },
+        {
+          error:
+            authType === "email"
+              ? "No guest voter found with this email address."
+              : "No guest voter found with this matric number.",
+        },
         { status: 404 }
       );
     }
