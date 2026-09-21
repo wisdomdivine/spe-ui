@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -217,10 +218,32 @@ export default function GuestElectionAuthPage() {
           {/* Back link */}
           <Link
             href="/programs/guest-electoral-session"
-            className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-gray-400 hover:text-blue-600 transition-colors"
+            className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-gray-400 hover:text-blue-600 transition-colors"
           >
             <IconArrowLeft size={16} /> Back to Guest Elections
           </Link>
+
+          {/* Collaboration Lockup */}
+          <div className="mb-6 flex items-center justify-center gap-3">
+            <Image
+              src="/speui.png"
+              alt="SPE UI"
+              width={32}
+              height={24}
+              className="h-6 w-auto object-contain"
+            />
+            <span className="text-gray-300 text-xs font-light select-none">/</span>
+            <Image
+              src="/afas-logo.jpg"
+              alt="AFAS"
+              width={26}
+              height={26}
+              className="h-6 w-6 object-contain rounded-full"
+            />
+            <span className="text-xs font-bold tracking-widest uppercase text-gray-700">
+              SPE UI x AFAS
+            </span>
+          </div>
 
           {/* Card */}
           <motion.div
@@ -235,7 +258,7 @@ export default function GuestElectionAuthPage() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
                   <IconChecklist size={20} />
                 </div>
-                <span className="text-xs font-bold tracking-[0.15em] uppercase text-blue-200">Guest Voter Verification</span>
+                <span className="text-xs font-bold tracking-[0.15em] uppercase text-blue-200">AFAS Voter Verification</span>
               </div>
               <h1 className="text-xl font-bold">{electionTitle || "Loading..."}</h1>
               <p className="mt-1.5 text-sm font-medium text-blue-200">Verify your identity to access the voting booth.</p>

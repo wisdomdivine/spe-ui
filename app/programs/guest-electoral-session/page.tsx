@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
@@ -23,9 +24,9 @@ interface Election {
   voted_count: number;
 }
 
-const TAG_CONFIG: Record<string, { bg: string; text: string; dot: string; label: string }> = {
-  Live: { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500", label: "Live" },
-  Upcoming: { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500", label: "Upcoming" },
+const TAG_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
+  Live: { bg: "bg-emerald-50", text: "text-emerald-700", label: "Live" },
+  Upcoming: { bg: "bg-amber-50", text: "text-amber-700", label: "Upcoming" },
 };
 
 function formatDateNice(dateStr: string | null | undefined) {
@@ -132,14 +133,32 @@ export default function GuestElectoralSessionPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="mb-6 flex items-center gap-3"
+              className="mb-8 flex items-center gap-3.5"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white">
-                <IconChecklist size={22} />
+              <Image
+                src="/speui.png"
+                alt="SPE UI"
+                width={36}
+                height={28}
+                className="h-7 w-auto object-contain"
+              />
+              <span className="text-gray-300 text-xs font-light select-none">/</span>
+              <Image
+                src="/afas-logo.jpg"
+                alt="AFAS"
+                width={32}
+                height={32}
+                className="h-7 w-7 object-contain rounded-full"
+              />
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold tracking-widest uppercase text-gray-800">
+                  SPE UI x AFAS
+                </span>
+                <span className="text-xs text-gray-300">·</span>
+                <span className="text-xs text-gray-500 font-medium">
+                  Faculty of Arts
+                </span>
               </div>
-              <span className="text-xs font-bold tracking-[0.2em] uppercase text-blue-600">
-                Guest Electoral Session
-              </span>
             </motion.div>
 
             <motion.h1
@@ -159,16 +178,18 @@ export default function GuestElectoralSessionPage() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="mt-6 max-w-xl text-lg font-medium leading-relaxed text-gray-500"
             >
-              Participate in guest elections securely. Your ballot is cast anonymously and counted in real time.
+              Electoral portal provided in collaboration with the Association of Faculty of Arts Students (AFAS), University of Ibadan.
             </motion.p>
 
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.35 }}
-              className="mt-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2.5"
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-gray-100 px-3.5 py-1.5"
             >
-              <span className="text-sm font-semibold text-emerald-700">Anonymous and Secure Voting</span>
+              <span className="text-xs font-medium text-gray-600">
+                Official AFAS Electoral Portal
+              </span>
             </motion.div>
           </div>
 
@@ -196,11 +217,7 @@ export default function GuestElectoralSessionPage() {
               {/* Live Elections */}
               {ongoing.length > 0 && (
                 <section className="mb-16">
-                  <div className="mb-6 flex items-center gap-3">
-                    <span className="relative flex h-3 w-3">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                      <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
-                    </span>
+                  <div className="mb-6 flex items-center gap-2">
                     <h2 className="text-lg font-bold text-gray-900">Live Elections</h2>
                   </div>
 
@@ -271,15 +288,7 @@ function GuestElectionCard({
       {/* Status */}
       <div className="mb-4 flex items-center justify-between">
         {config ? (
-          <div className={`flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-bold ${config.bg} ${config.text}`}>
-            {timeTag === "Live" ? (
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className={`relative inline-flex h-2 w-2 rounded-full ${config.dot}`} />
-              </span>
-            ) : (
-              <span className={`h-2 w-2 rounded-full ${config.dot}`} />
-            )}
+          <div className={`flex items-center rounded-full px-3 py-1 text-xs font-bold ${config.bg} ${config.text}`}>
             {config.label}
           </div>
         ) : <div />}
