@@ -186,10 +186,14 @@ export default function VotingCrowd({ electionId, apiEndpoint }: VotingCrowdProp
     }
   }, [endpoint]);
 
-  // Initial fetch + poll (gentle interval — each open vote page hits Supabase)
+  // Initial fetch + poll (gentle interval — only when tab is active)
   useEffect(() => {
     fetchVoters();
-    const interval = setInterval(fetchVoters, 30_000);
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchVoters();
+      }
+    }, 60_000);
     return () => clearInterval(interval);
   }, [fetchVoters]);
 

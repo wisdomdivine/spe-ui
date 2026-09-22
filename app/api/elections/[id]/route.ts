@@ -25,7 +25,7 @@ export async function GET(
 
     const liveStatus = computeElectionStatus(election);
 
-    // Fetch positions with candidates, and voter counts in parallel
+    // Fetch positions with candidates, and voter counts in parallel (head: true to avoid dumping rows)
     const [positionsRes, candidatesRes, votersRes, votedRes] = await Promise.all([
       supabase
         .from("election_positions")
@@ -38,11 +38,11 @@ export async function GET(
         .eq("election_id", id),
       supabase
         .from("election_voter_assignments")
-        .select("id")
+        .select("id", { count: "exact", head: true })
         .eq("election_id", id),
       supabase
         .from("election_voter_assignments")
-        .select("id")
+        .select("id", { count: "exact", head: true })
         .eq("election_id", id)
         .eq("has_voted", true),
     ]);
@@ -75,20 +75,27 @@ export async function GET(
       candidates: candidatesByPosition[p.id] || [],
     }));
 
-    return NextResponse.json({
-      id: election.id,
-      title: election.title,
-      description: election.description,
-      status: liveStatus,
-      is_open: election.is_open ?? false,
-      election_date: election.election_date,
-      start_time: election.start_time,
-      end_time: election.end_time,
-      voter_auth_type: election.voter_auth_type || "matric",
-      positions,
-      voters_count: votersRes.data?.length || 0,
-      voted_count: votedRes.data?.length || 0,
-    });
+    return NextResponse.json(
+      {
+        id: election.id,
+        title: election.title,
+        description: election.description,
+        status: liveStatus,
+        is_open: election.is_open ?? false,
+        election_date: election.election_date,
+        start_time: election.start_time,
+        end_time: election.end_time,
+        voter_auth_type: election.voter_auth_type || "matric",
+        positions,
+        voters_count: votersRes.count || 0,
+        voted_count: votedRes.count || 0,
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
+        },
+      }
+    );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to fetch election";
     return NextResponse.json({ error: message }, { status: 500 });

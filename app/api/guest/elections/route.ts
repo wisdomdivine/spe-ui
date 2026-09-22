@@ -48,7 +48,11 @@ export async function GET() {
       })
     );
 
-    return NextResponse.json(enriched);
+    return NextResponse.json(enriched, {
+      headers: {
+        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60",
+      },
+    });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to fetch guest elections";
     return NextResponse.json({ error: message }, { status: 500 });

@@ -31,14 +31,21 @@ export async function GET(
       manifesto: c.manifesto || c.bio || null,
     }));
 
-    return NextResponse.json({
-      election: {
-        ...election,
-        status: liveStatus,
+    return NextResponse.json(
+      {
+        election: {
+          ...election,
+          status: liveStatus,
+        },
+        positions: positionsRes.data || [],
+        candidates,
       },
-      positions: positionsRes.data || [],
-      candidates,
-    });
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
+        },
+      }
+    );
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { computeElectionStatus } from "@/lib/election-status";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -10,10 +11,8 @@ export const dynamic = "force-dynamic";
  *
  * Body: { voter_id: string, votes: Record<position_id, candidate_id | "__NONE_OF_ABOVE__"> }
  *
- * - Validates election is Live
- * - Validates voter hasn't already voted
- * - Inserts anonymous votes (no voter_id in election_votes)
- * - Marks voter as has_voted
+ * Uses atomic PostgreSQL RPC `submit_election_ballot` with row-level locking (FOR UPDATE)
+ * to eliminate double-voting and cut 6 network roundtrips down to 1.
  */
 export async function POST(
   req: NextRequest,
@@ -35,8 +34,44 @@ export async function POST(
       );
     }
 
+    // Concurrency guard: prevents rapid double-click ballot submissions for the same voter
+    const rl = await checkRateLimit(`vote:${electionId}:${voter_id}`, 2, 15_000);
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "Your ballot is already being submitted. Please hold on..." },
+        { status: 409 }
+      );
+    }
+
     const supabase = getSupabaseServer();
 
+    // Prepare vote payload
+    const votePayload = Object.entries(votes).map(([position_id, candidate_id]) => ({
+      position_id,
+      candidate_id: candidate_id === NONE_OF_ABOVE_TOKEN ? null : candidate_id,
+    }));
+
+    // ── Attempt Atomic RPC Submission (1 roundtrip + row-level lock) ──
+    try {
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc("submit_election_ballot", {
+        p_election_id: electionId,
+        p_voter_id: voter_id,
+        p_votes: votePayload,
+      });
+
+      if (!rpcErr && rpcRes) {
+        const result = rpcRes as { success: boolean; error?: string };
+        if (!result.success) {
+          const status = result.error?.includes("already voted") ? 409 : 400;
+          return NextResponse.json({ error: result.error || "Failed to submit ballot." }, { status });
+        }
+        return NextResponse.json({ success: true });
+      }
+    } catch {
+      // Fall through to legacy flow if RPC is not yet created in Supabase
+    }
+
+    // ── Fallback Multi-Step Flow (if RPC not yet applied in DB) ──
     // 1. Fetch election + validate it's Live
     const { data: election, error: elErr } = await supabase
       .from("elections")

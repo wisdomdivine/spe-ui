@@ -178,11 +178,14 @@ export default function VotePage() {
     sessionStorage.setItem(ballotStorageKey, payload);
   }, [ballotStorageKey, currentPosition, election, selections, showReview]);
 
+  // Gentle background heartbeat (60s) to detect pause/closure without overwhelming DB
   useEffect(() => {
     if (!election) return;
     const iv = setInterval(() => {
-      fetchElection(true);
-    }, 5000);
+      if (document.visibilityState === "visible") {
+        fetchElection(true);
+      }
+    }, 60_000);
     return () => clearInterval(iv);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [electionId, election?.id]);

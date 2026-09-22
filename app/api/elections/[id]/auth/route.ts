@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { sendOtpEmail } from "@/lib/mailer";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +59,24 @@ export async function POST(
       return NextResponse.json(
         { error: authType === "email" ? "Email address is required." : "Matric number is required." },
         { status: 400 }
+      );
+    }
+
+    // Rate limit: protects SMTP from being hammered while keeping UX completely natural.
+    // 5 attempts per voter identifier every 3 minutes; generous 150/5min for shared campus Wi-Fi IPs.
+    const ip = getClientIp(req);
+    const rlId = await checkRateLimit(`auth_id:${electionId}:${rawIdentifier.toLowerCase()}`, 5, 3 * 60 * 1000);
+    const rlIp = await checkRateLimit(`auth_ip:${ip}`, 150, 5 * 60 * 1000);
+    if (!rlId.success) {
+      return NextResponse.json(
+        { error: "A code was recently sent to your email. Please check your inbox (including spam) or wait a minute to request a new one." },
+        { status: 429 }
+      );
+    }
+    if (!rlIp.success) {
+      return NextResponse.json(
+        { error: "High traffic from your network. Please wait a moment and try again." },
+        { status: 429 }
       );
     }
 

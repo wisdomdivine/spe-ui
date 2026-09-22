@@ -49,11 +49,18 @@ export async function GET(
       };
     });
 
-    return NextResponse.json({
-      total_voted: count || 0,
-      show_live_voter_names: showLiveVoterNames,
-      recent_voters: voters,
-    });
+    return NextResponse.json(
+      {
+        total_voted: count || 0,
+        show_live_voter_names: showLiveVoterNames,
+        recent_voters: voters,
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=15, stale-while-revalidate=30",
+        },
+      }
+    );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to fetch live guest voters";
     return NextResponse.json({ error: message }, { status: 500 });
