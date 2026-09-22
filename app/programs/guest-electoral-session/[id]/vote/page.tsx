@@ -18,6 +18,7 @@ import {
   IconAlertCircle,
   IconLoader2,
   IconLock,
+  IconShieldCheck,
 } from "@tabler/icons-react";
 
 interface Candidate {
@@ -268,23 +269,42 @@ export default function GuestVotePage() {
       <main className="flex-grow pt-28 pb-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-12">
           {/* Top Bar */}
-          <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-gray-200/80 pb-6">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
-                  Guest Voting Session
-                </span>
-                <span className="text-xs font-medium text-gray-400">· {election.title}</span>
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {showReview ? "Review Your Ballot" : activePosition?.title || "Cast Vote"}
-              </h1>
+          <div className="mb-8 flex items-center justify-between">
+            <Link
+              href="/programs/guest-electoral-session"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-gray-400 hover:text-blue-600 transition-colors"
+            >
+              <IconArrowLeft size={16} /> Exit
+            </Link>
+            <div className="flex items-center gap-2 text-xs font-semibold text-gray-400">
+              <IconShieldCheck size={13} className="text-emerald-500" /> Anonymous Voting
             </div>
+          </div>
 
-            <div className="flex items-center gap-4">
-              <div className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-bold text-gray-700">
-                Position {Math.min(currentPosition + 1, positions.length)} of {positions.length}
-              </div>
+          {/* Progress bar */}
+          <div className="mb-8">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                Position {currentPosition + 1} of {positions.length}
+              </span>
+              <span className="text-xs font-bold text-gray-400">
+                {Object.values(selections).filter(Boolean).length}/{positions.length} selected
+              </span>
+            </div>
+            <div className="flex gap-1.5">
+              {positions.map((p, i) => (
+                <button
+                  key={p.id}
+                  onClick={() => { setCurrentPosition(i); setExpandedManifesto(null); }}
+                  className={`h-2 flex-1 rounded-full transition-all duration-300 ${
+                    i === currentPosition
+                      ? "bg-blue-600"
+                      : selections[p.id]
+                        ? "bg-emerald-400"
+                        : "bg-gray-200"
+                  }`}
+                />
+              ))}
             </div>
           </div>
 
@@ -383,164 +403,160 @@ export default function GuestVotePage() {
                   /* Position Candidate Selection */
                   <motion.div
                     key={activePosition?.id || currentPosition}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -15 }}
-                    className="space-y-6"
+                    initial={{ opacity: 0, x: 40 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -40 }}
+                    transition={{ duration: 0.3 }}
                   >
-                    {activePosition?.description && (
-                      <p className="text-sm text-gray-500 font-medium">
-                        {activePosition.description}
-                      </p>
-                    )}
+                    {/* Position header */}
+                    <div className="mb-6">
+                      <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{activePosition?.title}</h1>
+                      {activePosition?.description && (
+                        <p className="mt-2 text-sm font-medium text-gray-500">{activePosition.description}</p>
+                      )}
+                      <p className="mt-3 text-xs font-semibold text-gray-400">Select one candidate:</p>
+                    </div>
 
-                    {/* Candidate Cards */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {activeCandidates.map((cand) => {
+                    {/* Candidates */}
+                    <div className="space-y-3">
+                      {activeCandidates.map((cand, ci) => {
                         const isSelected = selections[activePosition.id] === cand.id;
                         const isExpanded = expandedManifesto === cand.id;
-                        const candBio = cand.bio || cand.manifesto;
+                        const candBio = cand.manifesto || cand.bio;
+
                         return (
-                          <div
+                          <motion.div
                             key={cand.id}
-                            onClick={() => handleSelectCandidate(cand.id)}
-                            className={`rounded-3xl border p-6 transition-all cursor-pointer flex flex-col justify-between ${
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: ci * 0.06 }}
+                            className={`overflow-hidden rounded-2xl border-2 transition-all duration-200 ${
                               isSelected
-                                ? "border-blue-600 bg-blue-50/20"
-                                : "border-gray-200 bg-white hover:border-gray-300"
+                                ? "border-blue-500 bg-blue-50/50 shadow-lg shadow-blue-100/50"
+                                : "border-gray-100 bg-white hover:border-gray-200 hover:shadow-md"
                             }`}
                           >
-                            <div>
-                              <div className="flex items-center gap-4 mb-4">
-                                <div className="relative h-14 w-14 overflow-hidden rounded-2xl bg-gray-100 shrink-0">
-                                  {cand.image_url ? (
-                                    <Image
-                                      src={cand.image_url}
-                                      alt={cand.name}
-                                      fill
-                                      className="object-cover"
-                                    />
-                                  ) : (
-                                    <div className="flex h-full w-full items-center justify-center text-gray-400">
-                                      <IconUser size={24} />
-                                    </div>
-                                  )}
-                                </div>
-                                <div>
-                                  <h3 className="text-base font-bold text-gray-900">{cand.name}</h3>
-                                  {cand.matric_number && (
-                                    <p className="text-xs text-gray-400 font-semibold mt-0.5">
-                                      {cand.matric_number}
-                                    </p>
-                                  )}
-                                </div>
+                            {/* Main row */}
+                            <button
+                              type="button"
+                              onClick={() => handleSelectCandidate(cand.id)}
+                              className="flex w-full items-center gap-4 p-5 text-left cursor-pointer"
+                            >
+                              {/* Avatar */}
+                              <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-black transition-colors ${
+                                isSelected ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-400"
+                              }`}>
+                                {cand.image_url ? (
+                                  <img
+                                    src={cand.image_url}
+                                    alt={cand.name}
+                                    className="h-14 w-14 rounded-2xl object-cover"
+                                    loading="lazy"
+                                    referrerPolicy="no-referrer"
+                                  />
+                                ) : (
+                                  cand.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+                                )}
                               </div>
 
-                              {/* Candidate bio toggle & expandable manifesto */}
-                              {candBio && (
-                                <div className="mt-2 mb-4">
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setExpandedManifesto(isExpanded ? null : cand.id);
-                                    }}
-                                    className="text-[11px] font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
-                                  >
-                                    {isExpanded ? "Hide bio ↑" : "View bio →"}
-                                  </button>
-                                  <AnimatePresence>
-                                    {isExpanded && (
-                                      <motion.div
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: "auto", opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="overflow-hidden"
-                                      >
-                                        <p className="text-xs font-medium leading-relaxed text-gray-600 pt-2 border-t border-gray-100 mt-2 whitespace-pre-line">
-                                          &ldquo;{candBio}&rdquo;
-                                        </p>
-                                      </motion.div>
-                                    )}
-                                  </AnimatePresence>
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
-                              <span
-                                className={`text-xs font-bold ${
-                                  isSelected ? "text-blue-600" : "text-gray-400"
-                                }`}
-                              >
-                                {isSelected ? "Selected" : "Select Candidate"}
-                              </span>
-                              <div
-                                className={`flex h-6 w-6 items-center justify-center rounded-full border ${
-                                  isSelected
-                                    ? "border-blue-600 bg-blue-600 text-white"
-                                    : "border-gray-300 bg-white"
-                                }`}
-                              >
-                                {isSelected && <IconCircleCheck size={14} />}
+                              {/* Info */}
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-base font-bold ${isSelected ? "text-blue-700" : "text-gray-900"}`}>
+                                  {cand.name}
+                                </p>
+                                {cand.matric_number && <p className="text-xs font-medium text-gray-400 mt-0.5">Matric: {cand.matric_number}</p>}
                               </div>
-                            </div>
-                          </div>
+
+                              {/* Check circle */}
+                              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
+                                isSelected
+                                  ? "border-blue-500 bg-blue-600"
+                                  : "border-gray-200 bg-white"
+                              }`}>
+                                {isSelected && <IconCircleCheck size={16} className="text-white" />}
+                              </div>
+                            </button>
+
+                            {/* Candidate manifesto toggle */}
+                            {candBio && (
+                              <div className="px-5 pb-2">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedManifesto(isExpanded ? null : cand.id);
+                                  }}
+                                  className="text-[11px] font-bold text-blue-600 hover:text-blue-700 mb-2 cursor-pointer inline-flex items-center gap-1"
+                                >
+                                  {isExpanded ? "Hide manifesto ↑" : "View manifesto →"}
+                                </button>
+                                <AnimatePresence>
+                                  {isExpanded && (
+                                    <motion.div
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: "auto", opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      transition={{ duration: 0.2 }}
+                                      className="overflow-hidden"
+                                    >
+                                      <p className="text-sm font-medium leading-relaxed text-gray-600 pb-3 border-t border-gray-100 pt-3 whitespace-pre-line">
+                                        &ldquo;{candBio}&rdquo;
+                                      </p>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+                            )}
+                          </motion.div>
                         );
                       })}
 
-                      {/* Void Card */}
-                      <div
-                        onClick={() => handleSelectCandidate(NONE_OF_ABOVE_TOKEN)}
-                        className={`rounded-3xl border p-6 transition-all cursor-pointer flex flex-col justify-between ${
+                      {/* Void option */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`overflow-hidden rounded-2xl border-2 transition-all duration-200 ${
                           selections[activePosition?.id] === NONE_OF_ABOVE_TOKEN
-                            ? "border-amber-500 bg-amber-50/30"
-                            : "border-gray-200 bg-white hover:border-gray-300"
+                            ? "border-amber-500 bg-amber-50/60 shadow-lg shadow-amber-100/60"
+                            : "border-gray-100 bg-white hover:border-amber-200 hover:shadow-md"
                         }`}
                       >
-                        <div>
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-600 font-black">
-                              Ø
-                            </div>
-                            <h3 className="text-sm font-bold text-gray-900">Void</h3>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectCandidate(NONE_OF_ABOVE_TOKEN)}
+                          className="flex w-full items-center gap-4 p-5 text-left cursor-pointer"
+                        >
+                          <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-black transition-colors ${
+                            selections[activePosition?.id] === NONE_OF_ABOVE_TOKEN ? "bg-amber-500 text-white" : "bg-amber-100 text-amber-700"
+                          }`}>
+                            Ø
                           </div>
-                          <p className="text-xs text-gray-500 font-medium leading-relaxed">
-                            Submit a blank preference for this position.
-                          </p>
-                        </div>
-
-                        <div className="pt-4 border-t border-gray-100 flex items-center justify-between mt-4">
-                          <span
-                            className={`text-xs font-bold ${
-                              selections[activePosition?.id] === NONE_OF_ABOVE_TOKEN
-                                ? "text-amber-600"
-                                : "text-gray-400"
-                            }`}
-                          >
-                            {selections[activePosition?.id] === NONE_OF_ABOVE_TOKEN ? "Selected" : "Choose option"}
-                          </span>
-                          <div
-                            className={`flex h-6 w-6 items-center justify-center rounded-full border ${
-                              selections[activePosition?.id] === NONE_OF_ABOVE_TOKEN
-                                ? "border-amber-500 bg-amber-500 text-white"
-                                : "border-gray-300 bg-white"
-                            }`}
-                          >
-                            {selections[activePosition?.id] === NONE_OF_ABOVE_TOKEN && <IconCircleCheck size={14} />}
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-base font-bold ${selections[activePosition?.id] === NONE_OF_ABOVE_TOKEN ? "text-amber-700" : "text-gray-900"}`}>
+                              Void
+                            </p>
+                            <p className="text-xs font-medium text-gray-500 mt-0.5">
+                              Submit a blank preference for this position.
+                            </p>
                           </div>
-                        </div>
-                      </div>
+                          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
+                            selections[activePosition?.id] === NONE_OF_ABOVE_TOKEN
+                              ? "border-amber-500 bg-amber-500"
+                              : "border-gray-200 bg-white"
+                          }`}>
+                            {selections[activePosition?.id] === NONE_OF_ABOVE_TOKEN && <IconCircleCheck size={16} className="text-white" />}
+                          </div>
+                        </button>
+                      </motion.div>
                     </div>
 
                     {/* Navigation Buttons */}
-                    <div className="flex items-center justify-between pt-6 border-t border-gray-200/80">
+                    <div className="mt-8 flex items-center justify-between">
                       <button
                         type="button"
                         onClick={handlePrev}
                         disabled={currentPosition === 0}
-                        className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-6 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-40 cursor-pointer"
+                        className="flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold text-gray-500 transition-colors hover:bg-white hover:text-gray-900 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
                       >
                         <IconChevronLeft size={18} /> Previous
                       </button>
@@ -549,11 +565,26 @@ export default function GuestVotePage() {
                         type="button"
                         onClick={handleNext}
                         disabled={!selections[activePosition?.id]}
-                        className="flex items-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-40 cursor-pointer"
+                        className={`flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold transition-all shadow-lg disabled:opacity-40 disabled:shadow-none cursor-pointer ${
+                          currentPosition === positions.length - 1 && allPositionsVoted
+                            ? "bg-emerald-600 text-white shadow-emerald-200 hover:bg-emerald-700"
+                            : "bg-blue-600 text-white shadow-blue-200 hover:bg-blue-700"
+                        }`}
                       >
-                        {currentPosition === positions.length - 1 ? "Review Ballot" : "Next Position"}
-                        <IconChevronRight size={18} />
+                        {currentPosition === positions.length - 1 ? (
+                          <>Review Ballot <IconChecklist size={16} /></>
+                        ) : (
+                          <>Next <IconChevronRight size={18} /></>
+                        )}
                       </button>
+                    </div>
+
+                    {/* Bottom trust badge */}
+                    <div className="mt-8 flex justify-center">
+                      <p className="text-[11px] font-medium text-gray-300 flex items-center gap-1.5">
+                        <IconLock size={12} className="text-gray-300" />
+                        Your vote is encrypted and anonymous
+                      </p>
                     </div>
                   </motion.div>
                 )}
