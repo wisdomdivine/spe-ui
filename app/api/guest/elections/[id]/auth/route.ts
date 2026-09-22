@@ -135,7 +135,31 @@ export async function POST(
       );
     }
 
-    // 5. Delete any previous OTPs for this voter + election
+    // 5. Server-side cooldown: enforce minimum 60s between email dispatches per voter
+    const { data: recentOtp } = await supabase
+      .from("guest_voter_otps")
+      .select("created_at")
+      .eq("voter_id", voter.id)
+      .eq("election_id", electionId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (recentOtp?.created_at) {
+      const ageMs = Date.now() - new Date(recentOtp.created_at).getTime();
+      const COOLDOWN_MS = 60_000;
+      if (ageMs < COOLDOWN_MS) {
+        const remainingSec = Math.ceil((COOLDOWN_MS - ageMs) / 1000);
+        return NextResponse.json(
+          {
+            error: `A verification code was just sent. Please check your inbox or wait ${remainingSec}s before requesting a new code.`,
+          },
+          { status: 429 }
+        );
+      }
+    }
+
+    // 6. Delete any previous OTPs for this voter + election
     await supabase
       .from("guest_voter_otps")
       .delete()

@@ -9,6 +9,9 @@ const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.hostinger.com",
   port: parseInt(process.env.SMTP_PORT || "465", 10),
   secure: true, // SSL/TLS on port 465
+  pool: true,
+  maxConnections: 5,
+  maxMessages: 100,
   auth: {
     user: process.env.SMTP_USER || "no-reply@speui.org",
     pass: process.env.SMTP_PASS || "",

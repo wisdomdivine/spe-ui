@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { computeElectionStatus } from "@/lib/election-status";
 
-export const dynamic = "force-dynamic";
+// Revalidate every 30 seconds at the CDN / Edge layer
+export const revalidate = 30;
 export const maxDuration = 60;
 
 export async function GET() {
