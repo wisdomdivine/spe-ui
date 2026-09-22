@@ -29,6 +29,7 @@ interface Candidate {
   matric_number: string | null;
   image_url: string | null;
   bio: string | null;
+  manifesto?: string | null;
 }
 
 interface Position {
@@ -591,7 +592,7 @@ export default function VotePage() {
                       </button>
 
                       {/* Candidate bio toggle */}
-                      {cand.bio && (
+                      {(cand.bio || cand.manifesto) && (
                         <div className="px-5 pb-1">
                           <button
                             onClick={(e) => {
@@ -611,8 +612,8 @@ export default function VotePage() {
                                 transition={{ duration: 0.2 }}
                                 className="overflow-hidden"
                               >
-                                <p className="text-sm font-medium leading-relaxed text-gray-600 pb-4 border-t border-gray-100 pt-3">
-                                  &ldquo;{cand.bio}&rdquo;
+                                <p className="text-sm font-medium leading-relaxed text-gray-600 pb-4 border-t border-gray-100 pt-3 whitespace-pre-line">
+                                  &ldquo;{cand.bio || cand.manifesto}&rdquo;
                                 </p>
                               </motion.div>
                             )}

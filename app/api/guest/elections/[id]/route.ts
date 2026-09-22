@@ -25,13 +25,19 @@ export async function GET(
     const election = electionRes.data;
     const liveStatus = computeElectionStatus(election);
 
+    const candidates = (candidatesRes.data || []).map((c: any) => ({
+      ...c,
+      bio: c.manifesto || c.bio || null,
+      manifesto: c.manifesto || c.bio || null,
+    }));
+
     return NextResponse.json({
       election: {
         ...election,
         status: liveStatus,
       },
       positions: positionsRes.data || [],
-      candidates: candidatesRes.data || [],
+      candidates,
     });
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

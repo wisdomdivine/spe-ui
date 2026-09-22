@@ -27,6 +27,7 @@ interface Candidate {
   matric_number: string | null;
   image_url: string | null;
   bio: string | null;
+  manifesto?: string | null;
 }
 
 interface Position {
@@ -65,6 +66,7 @@ export default function GuestVotePage() {
   const [currentPosition, setCurrentPosition] = useState(0);
   const [selections, setSelections] = useState<Record<string, string>>({});
   const [showReview, setShowReview] = useState(false);
+  const [expandedManifesto, setExpandedManifesto] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -148,6 +150,7 @@ export default function GuestVotePage() {
   };
 
   const handleNext = () => {
+    setExpandedManifesto(null);
     if (currentPosition < positions.length - 1) {
       setCurrentPosition((prev) => prev + 1);
     } else {
@@ -156,6 +159,7 @@ export default function GuestVotePage() {
   };
 
   const handlePrev = () => {
+    setExpandedManifesto(null);
     if (showReview) {
       setShowReview(false);
     } else if (currentPosition > 0) {
@@ -394,6 +398,8 @@ export default function GuestVotePage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {activeCandidates.map((cand) => {
                         const isSelected = selections[activePosition.id] === cand.id;
+                        const isExpanded = expandedManifesto === cand.id;
+                        const candBio = cand.bio || cand.manifesto;
                         return (
                           <div
                             key={cand.id}
@@ -430,10 +436,35 @@ export default function GuestVotePage() {
                                 </div>
                               </div>
 
-                              {cand.bio && (
-                                <p className="text-xs text-gray-500 line-clamp-3 mb-4 leading-relaxed font-medium">
-                                  {cand.bio}
-                                </p>
+                              {/* Candidate bio toggle & expandable manifesto */}
+                              {candBio && (
+                                <div className="mt-2 mb-4">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedManifesto(isExpanded ? null : cand.id);
+                                    }}
+                                    className="text-[11px] font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+                                  >
+                                    {isExpanded ? "Hide bio ↑" : "View bio →"}
+                                  </button>
+                                  <AnimatePresence>
+                                    {isExpanded && (
+                                      <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="overflow-hidden"
+                                      >
+                                        <p className="text-xs font-medium leading-relaxed text-gray-600 pt-2 border-t border-gray-100 mt-2 whitespace-pre-line">
+                                          &ldquo;{candBio}&rdquo;
+                                        </p>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+                                </div>
                               )}
                             </div>
 
