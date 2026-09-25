@@ -41,9 +41,9 @@ export async function POST(
       );
     }
 
-    if (!election.is_open && election.status !== "Active") {
+    if (!election.is_open || election.status === "Completed") {
       return NextResponse.json(
-        { error: "This election is not open for voting yet." },
+        { error: "This election is closed for voting." },
         { status: 403 }
       );
     }
