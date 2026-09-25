@@ -25,12 +25,36 @@ export async function GET() {
 
     const enriched = await Promise.all(
       elections.map(async (e) => {
-        const [positions, candidates, voters, voted] = await Promise.all([
+        const [positions, candidates, voters] = await Promise.all([
           supabase.from("guest_election_positions").select("id", { count: "exact", head: true }).eq("election_id", e.id),
           supabase.from("guest_election_candidates").select("id", { count: "exact", head: true }).eq("election_id", e.id),
           supabase.from("guest_election_voter_assignments").select("id", { count: "exact", head: true }).eq("election_id", e.id),
-          supabase.from("guest_election_voter_assignments").select("id", { count: "exact", head: true }).eq("election_id", e.id).eq("has_voted", true),
         ]);
+
+        let votedCount = 0;
+        const { data: firstPos } = await supabase
+          .from("guest_election_positions")
+          .select("id")
+          .eq("election_id", e.id)
+          .order("sort_order")
+          .limit(1)
+          .maybeSingle();
+
+        if (firstPos?.id) {
+          const { count } = await supabase
+            .from("guest_election_ballots")
+            .select("id", { count: "exact", head: true })
+            .eq("election_id", e.id)
+            .eq("position_id", firstPos.id);
+          votedCount = count ?? 0;
+        } else {
+          const { count } = await supabase
+            .from("guest_election_voter_assignments")
+            .select("id", { count: "exact", head: true })
+            .eq("election_id", e.id)
+            .eq("has_voted", true);
+          votedCount = count ?? 0;
+        }
 
         return {
           id: e.id,
@@ -44,7 +68,7 @@ export async function GET() {
           positions_count: positions.count || 0,
           candidates_count: candidates.count || 0,
           voters_count: voters.count || 0,
-          voted_count: voted.count || 0,
+          voted_count: votedCount,
         };
       })
     );
