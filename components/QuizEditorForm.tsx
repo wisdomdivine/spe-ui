@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { showAlert } from "@/components/CustomDialog";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -265,7 +266,7 @@ export default function QuizEditorForm({ initialQuiz, isEdit = false }: QuizEdit
 
   const removeQuestion = (indexToRemove: number) => {
     if (questions.length <= 1) {
-      alert("A quiz must have at least one question.");
+      showAlert("A quiz must have at least one question.");
       return;
     }
     const nextList = questions.filter((_, i) => i !== indexToRemove);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { showConfirm } from "@/components/CustomDialog";
 import { motion } from "framer-motion";
 import {
   IconPlus,
@@ -50,7 +51,7 @@ export default function ShowdownHostDashboardPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this quiz? All questions will be removed.")) return;
+    if (!(await showConfirm("Are you sure you want to delete this quiz? All questions will be removed."))) return;
     try {
       const res = await fetch(`/api/showdown/${id}`, { method: "DELETE" });
       if (res.ok) {

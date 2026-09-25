@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Host_Grotesk } from "next/font/google";
 import Script from "next/script";
+import { DialogProvider } from "../components/CustomDialog";
 import "./globals.css";
 
 const hostGrotesk = Host_Grotesk({
@@ -166,7 +167,9 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(eduJsonLd) }}
         />
-        {children}
+        <DialogProvider>
+          {children}
+        </DialogProvider>
       </body>
     </html>
   );
