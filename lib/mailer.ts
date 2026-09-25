@@ -1,9 +1,9 @@
 import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-/* ──────────────────────────────────────────────────────────────
-   SMTP Mailer - Hostinger (no-reply@speui.org)
-   Uses SSL/TLS on port 465.
-   ────────────────────────────────────────────────────────────── */
+const resendClient = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.hostinger.com",
@@ -13,12 +13,12 @@ const transporter = nodemailer.createTransport({
   maxConnections: 5,
   maxMessages: 100,
   auth: {
-    user: process.env.SMTP_USER || "no-reply@speui.org",
+    user: process.env.SMTP_USER || "info@speui.org",
     pass: process.env.SMTP_PASS || "",
   },
 });
 
-const FROM_ADDRESS = `"SPE-UI" <${process.env.SMTP_USER || "no-reply@speui.org"}>`;
+const FROM_ADDRESS = `"SPE-UI" <${process.env.SMTP_USER || "info@speui.org"}>`;
 
 /**
  * Send an OTP verification email for election voting.
@@ -110,6 +110,22 @@ export async function sendOtpEmail({
     `Society of Petroleum Engineers, University of Ibadan Student Chapter`,
   ].join("\n");
 
+  if (resendClient) {
+    try {
+      const { error } = await resendClient.emails.send({
+        from: FROM_ADDRESS,
+        to: [to],
+        subject: `Your voting verification code: ${otp}`,
+        text,
+        html,
+      });
+      if (!error) return;
+      console.error("Resend sendOtpEmail error, falling back to SMTP:", error);
+    } catch (resendErr) {
+      console.error("Resend threw in sendOtpEmail, falling back to SMTP:", resendErr);
+    }
+  }
+
   await transporter.sendMail({
     from: FROM_ADDRESS,
     to,
@@ -131,6 +147,21 @@ export async function sendEmail({
   subject: string;
   html: string;
 }) {
+  if (resendClient) {
+    try {
+      const { error } = await resendClient.emails.send({
+        from: FROM_ADDRESS,
+        to: [to],
+        subject,
+        html,
+      });
+      if (!error) return;
+      console.error("Resend sendEmail error, falling back to SMTP:", error);
+    } catch (resendErr) {
+      console.error("Resend threw in sendEmail, falling back to SMTP:", resendErr);
+    }
+  }
+
   await transporter.sendMail({
     from: FROM_ADDRESS,
     to,
