@@ -12,7 +12,7 @@ export async function GET() {
 
     const { data: elections, error } = await supabase
       .from("guest_elections")
-      .select("id, title, description, status, is_open, election_date, start_time, end_time, created_at")
+      .select("id, title, description, status, is_open, is_hidden, election_date, start_time, end_time, created_at")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -62,6 +62,7 @@ export async function GET() {
           description: e.description,
           status: computeElectionStatus(e),
           is_open: e.is_open,
+          is_hidden: Boolean(e.is_hidden),
           election_date: e.election_date,
           start_time: e.start_time,
           end_time: e.end_time,

@@ -23,6 +23,7 @@ interface Election {
   candidates_count: number;
   voters_count: number;
   voted_count: number;
+  is_hidden?: boolean;
 }
 
 const TAG_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
@@ -127,9 +128,13 @@ export default function GuestElectoralSessionPage() {
     return () => clearInterval(id);
   }, []);
 
-  const ongoing = elections.filter((e) => computeElectionTimeTag(e) === "Live");
-  const upcoming = elections.filter((e) => computeElectionTimeTag(e) === "Upcoming");
-  const completed = elections.filter((e) => e.status === "Completed");
+  const visibleElections = elections.filter((e) => !e.is_hidden);
+  const ongoing = visibleElections.filter((e) => computeElectionTimeTag(e) === "Live");
+  const upcoming = visibleElections.filter((e) => computeElectionTimeTag(e) === "Upcoming");
+  const completed = branding.hide_completed_elections
+    ? []
+    : visibleElections.filter((e) => e.status === "Completed");
+  const hasVisibleElections = ongoing.length > 0 || upcoming.length > 0 || completed.length > 0;
 
   return (
     <div className="flex min-h-screen flex-col bg-[#F8FAFF] font-sans text-black overflow-x-hidden">
@@ -211,7 +216,7 @@ export default function GuestElectoralSessionPage() {
                 Try again
               </button>
             </div>
-          ) : elections.length === 0 ? (
+          ) : !hasVisibleElections ? (
             <div className="text-center py-24">
               <p className="text-lg font-semibold text-gray-400">No guest elections available at the moment.</p>
             </div>
@@ -245,7 +250,7 @@ export default function GuestElectoralSessionPage() {
               )}
 
               {/* Completed Elections */}
-              {completed.length > 0 && (
+              {!branding.hide_completed_elections && completed.length > 0 && (
                 <section>
                   <h2 className="mb-6 text-lg font-bold text-gray-500">Completed Elections</h2>
                   <div className="space-y-4">

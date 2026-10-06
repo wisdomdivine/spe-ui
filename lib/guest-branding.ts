@@ -12,6 +12,7 @@ export interface GuestBranding {
   portal_badge: string;
   auth_badge: string;
   faculty_name: string;
+  hide_completed_elections?: boolean;
   created_at?: string;
   updated_at?: string;
 }
@@ -28,6 +29,7 @@ export const DEFAULT_GUEST_BRANDING: GuestBranding = {
   portal_badge: "Official Guest Electoral Portal",
   auth_badge: "Guest Voter Verification",
   faculty_name: "Guest Session",
+  hide_completed_elections: false,
 };
 
 export async function fetchGuestBrandingServer(): Promise<GuestBranding> {
