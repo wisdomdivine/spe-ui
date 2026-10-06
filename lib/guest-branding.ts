@@ -18,16 +18,16 @@ export interface GuestBranding {
 
 export const DEFAULT_GUEST_BRANDING: GuestBranding = {
   id: "default",
-  organization_name: "Association of Faculty of Arts Students",
-  organization_acronym: "AFAS",
-  organization_full_name: "Association of Faculty of Arts Students · University of Ibadan",
-  logo_url: "/afas-logo.png",
-  cobranding_title: "SPE UI x AFAS",
+  organization_name: "Guest Electoral Session",
+  organization_acronym: "Guest",
+  organization_full_name: "Guest Electoral Session · University of Ibadan",
+  logo_url: "/guest-logo.svg",
+  cobranding_title: "SPE UI x Guest",
   hero_title: "Guest Voting,\nSecure & Direct.",
-  hero_description: "Electoral portal provided in collaboration with the Association of Faculty of Arts Students (AFAS), University of Ibadan.",
-  portal_badge: "Official AFAS Electoral Portal",
-  auth_badge: "AFAS Voter Verification",
-  faculty_name: "Faculty of Arts",
+  hero_description: "Official guest electoral portal provided in collaboration with partner organizations and student associations, University of Ibadan.",
+  portal_badge: "Official Guest Electoral Portal",
+  auth_badge: "Guest Voter Verification",
+  faculty_name: "Guest Session",
 };
 
 export async function fetchGuestBrandingServer(): Promise<GuestBranding> {

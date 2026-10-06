@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="guestGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#4f46e5" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#2563eb" flood-opacity="0.3" />
+    </filter>
+  </defs>
+  <rect width="120" height="120" rx="30" fill="url(#guestGrad)" filter="url(#shadow)" />
+  <rect x="2" y="2" width="116" height="116" rx="28" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2" />
+  
+  <!-- Ballot Box & Checkmark -->
+  <path d="M40 38h40a6 6 0 0 1 6 6v34a6 6 0 0 1-6 6H40a6 6 0 0 1-6-6V44a6 6 0 0 1 6-6z" fill="rgba(255,255,255,0.12)" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+  <line x1="48" y1="48" x2="72" y2="48" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.6" />
+  <path d="M49 63l9 9 16-17" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
