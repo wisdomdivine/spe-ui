@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { IconChecklist, IconCalendar, IconClock, IconUsers, IconChevronRight, IconLoader2 } from "@tabler/icons-react";
 import { computeElectionTimeTag } from "@/lib/election-status";
+import { GuestBranding, DEFAULT_GUEST_BRANDING } from "@/lib/guest-branding";
 
 interface Election {
   id: string;
@@ -43,6 +44,7 @@ function formatDateNice(dateStr: string | null | undefined) {
 
 export default function GuestElectoralSessionPage() {
   const [elections, setElections] = useState<Election[]>([]);
+  const [branding, setBranding] = useState<GuestBranding>(DEFAULT_GUEST_BRANDING);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
@@ -54,6 +56,14 @@ export default function GuestElectoralSessionPage() {
     let cancelled = false;
     const ac = new AbortController();
     const deadline = setTimeout(() => ac.abort(), INITIAL_FETCH_MS);
+
+    // Fetch branding dynamically
+    fetch("/api/guest/branding", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && !cancelled) setBranding(data);
+      })
+      .catch(() => {});
 
     async function initialLoad() {
       setLoading(true);
@@ -144,20 +154,23 @@ export default function GuestElectoralSessionPage() {
                 priority
               />
               <span className="text-gray-300 text-base font-light select-none">/</span>
-              <Image
-                src="/afas-logo.png"
-                alt="AFAS"
-                width={60}
-                height={55}
-                className="h-12 w-12 sm:h-14 sm:w-14 object-contain"
-                priority
-              />
+              {branding.logo_url ? (
+                <Image
+                  src={branding.logo_url}
+                  alt={branding.organization_acronym || "Partner"}
+                  width={60}
+                  height={55}
+                  className="h-12 w-12 sm:h-14 sm:w-14 object-contain"
+                  unoptimized={branding.logo_url.startsWith("http")}
+                  priority
+                />
+              ) : null}
               <div className="flex flex-col justify-center pl-1">
                 <span className="text-xs sm:text-sm font-bold tracking-widest uppercase text-gray-900">
-                  SPE UI x AFAS
+                  {branding.cobranding_title}
                 </span>
                 <span className="text-[11px] sm:text-xs text-gray-500 font-medium">
-                  Association of Faculty of Arts Students · University of Ibadan
+                  {branding.organization_full_name}
                 </span>
               </div>
             </motion.div>
@@ -166,11 +179,9 @@ export default function GuestElectoralSessionPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-[38px] font-bold leading-[1.08] tracking-tight text-gray-900 sm:text-6xl lg:text-[72px]"
+              className="text-[38px] font-bold leading-[1.08] tracking-tight text-gray-900 sm:text-6xl lg:text-[72px] whitespace-pre-line"
             >
-              Guest Voting,
-              <br />
-              Secure &amp; Direct.
+              {branding.hero_title}
             </motion.h1>
 
             <motion.p
@@ -179,7 +190,7 @@ export default function GuestElectoralSessionPage() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="mt-6 max-w-xl text-lg font-medium leading-relaxed text-gray-500"
             >
-              Electoral portal provided in collaboration with the Association of Faculty of Arts Students (AFAS), University of Ibadan.
+              {branding.hero_description}
             </motion.p>
 
             <motion.div
@@ -189,7 +200,7 @@ export default function GuestElectoralSessionPage() {
               className="mt-6 inline-flex items-center gap-2 rounded-full bg-gray-100 px-3.5 py-1.5"
             >
               <span className="text-xs font-medium text-gray-600">
-                Official AFAS Electoral Portal
+                {branding.portal_badge}
               </span>
             </motion.div>
           </div>

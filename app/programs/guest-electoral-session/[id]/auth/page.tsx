@@ -20,12 +20,14 @@ import {
   IconEyeOff,
   IconLock,
 } from "@tabler/icons-react";
+import { GuestBranding, DEFAULT_GUEST_BRANDING } from "@/lib/guest-branding";
 
 export default function GuestElectionAuthPage() {
   const params = useParams();
   const router = useRouter();
   const electionId = params?.id as string;
 
+  const [branding, setBranding] = useState<GuestBranding>(DEFAULT_GUEST_BRANDING);
   const [electionTitle, setElectionTitle] = useState("");
   const [voterAuthType, setVoterAuthType] = useState<"matric" | "email">("matric");
   const [step, setStep] = useState<"identify" | "otp">("identify");
@@ -40,6 +42,15 @@ export default function GuestElectionAuthPage() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const voterStorageKey = `guest_voter_${electionId}`;
   const ballotStorageKey = `guest_vote_progress_${electionId}`;
+
+  useEffect(() => {
+    fetch("/api/guest/branding", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) setBranding(data);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const savedVoter = sessionStorage.getItem(voterStorageKey);
@@ -233,19 +244,22 @@ export default function GuestElectionAuthPage() {
               className="h-8 w-auto object-contain"
             />
             <span className="text-gray-300 text-sm font-light select-none">/</span>
-            <Image
-              src="/afas-logo.png"
-              alt="AFAS"
-              width={50}
-              height={46}
-              className="h-10 w-10 object-contain"
-            />
+            {branding.logo_url ? (
+              <Image
+                src={branding.logo_url}
+                alt={branding.organization_acronym || "Partner"}
+                width={50}
+                height={46}
+                className="h-10 w-10 object-contain"
+                unoptimized={branding.logo_url.startsWith("http")}
+              />
+            ) : null}
             <div className="flex flex-col text-left">
               <span className="text-xs font-bold tracking-widest uppercase text-gray-900">
-                SPE UI x AFAS
+                {branding.cobranding_title}
               </span>
               <span className="text-[10px] text-gray-500 font-medium">
-                Faculty of Arts
+                {branding.faculty_name}
               </span>
             </div>
           </div>
@@ -263,7 +277,9 @@ export default function GuestElectionAuthPage() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
                   <IconChecklist size={20} />
                 </div>
-                <span className="text-xs font-bold tracking-[0.15em] uppercase text-blue-200">AFAS Voter Verification</span>
+                <span className="text-xs font-bold tracking-[0.15em] uppercase text-blue-200">
+                  {branding.auth_badge}
+                </span>
               </div>
               <h1 className="text-xl font-bold">{electionTitle || "Loading..."}</h1>
               <p className="mt-1.5 text-sm font-medium text-blue-200">Verify your identity to access the voting booth.</p>
