@@ -145,19 +145,10 @@ export default function GuestElectoralSessionPage() {
               transition={{ duration: 0.5 }}
               className="mb-10 flex items-center gap-4 sm:gap-5 flex-wrap"
             >
-              <Image
-                src="/speui.png"
-                alt="SPE UI"
-                width={60}
-                height={45}
-                className="h-9 sm:h-11 w-auto object-contain"
-                priority
-              />
-              <span className="text-gray-300 text-base font-light select-none">/</span>
               {branding.logo_url ? (
                 <Image
                   src={branding.logo_url}
-                  alt={branding.organization_acronym || "Partner"}
+                  alt={branding.organization_acronym || "Guest"}
                   width={60}
                   height={55}
                   className="h-12 w-12 sm:h-14 sm:w-14 object-contain"

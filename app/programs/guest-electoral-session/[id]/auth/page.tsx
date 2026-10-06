@@ -234,20 +234,12 @@ export default function GuestElectionAuthPage() {
             <IconArrowLeft size={16} /> Back to Guest Elections
           </Link>
 
-          {/* Collaboration Lockup */}
-          <div className="mb-8 flex items-center justify-center gap-4">
-            <Image
-              src="/speui.png"
-              alt="SPE UI"
-              width={50}
-              height={38}
-              className="h-8 w-auto object-contain"
-            />
-            <span className="text-gray-300 text-sm font-light select-none">/</span>
+          {/* Guest Organization Lockup */}
+          <div className="mb-8 flex items-center justify-center gap-3">
             {branding.logo_url ? (
               <Image
                 src={branding.logo_url}
-                alt={branding.organization_acronym || "Partner"}
+                alt={branding.organization_acronym || "Guest"}
                 width={50}
                 height={46}
                 className="h-10 w-10 object-contain"
