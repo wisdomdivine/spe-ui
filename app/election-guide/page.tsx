@@ -80,17 +80,6 @@ export default function ElectionGuidePage() {
         <div className="container mx-auto px-6 lg:px-16 max-w-7xl">
           {/* Header Hero */}
           <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 rounded-full bg-blue-50 border border-blue-100/80 px-4 py-1.5 mb-6 shadow-xs"
-            >
-              <IconSparkles size={15} className="text-blue-600" />
-              <span className="text-xs font-bold tracking-wider uppercase text-blue-700">
-                Official Voter Walkthrough
-              </span>
-            </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
