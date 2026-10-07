@@ -69,6 +69,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.googleusercontent.com",
       },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
       ...(adminHostname
         ? [
             { protocol: "https" as const, hostname: adminHostname, pathname: "/**" },
@@ -78,6 +82,20 @@ const nextConfig: NextConfig = {
       { protocol: "http", hostname: "localhost", port: "3003", pathname: "/**" },
       { protocol: "http", hostname: "localhost", port: "3000", pathname: "/**" },
     ],
+  },
+  async redirects() {
+    return [
+      {
+        source: "/election-guide.mp4",
+        destination: "https://res.cloudinary.com/tsgtyztc/video/upload/v1791387936/election-guide.mp4",
+        permanent: false,
+      },
+      {
+        source: "/media/election-guide.mp4",
+        destination: "https://res.cloudinary.com/tsgtyztc/video/upload/v1791387936/election-guide.mp4",
+        permanent: false,
+      },
+    ];
   },
 };
 
