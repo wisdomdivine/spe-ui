@@ -17,7 +17,7 @@ import {
   IconHelpCircle,
 } from "@tabler/icons-react";
 
-const VIDEO_URL = "https://res.cloudinary.com/tsgtyztc/video/upload/v1791387936/election-guide.mp4";
+const VIDEO_URL = "https://res.cloudinary.com/tsgtyztc/video/upload/v1791389336/election-guide.mp4";
 
 const STEPS = [
   {

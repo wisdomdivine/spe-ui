@@ -92,7 +92,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/media/election-guide.mp4",
-        destination: "https://res.cloudinary.com/tsgtyztc/video/upload/v1791387936/election-guide.mp4",
+        destination: "https://res.cloudinary.com/tsgtyztc/video/upload/v1791389336/election-guide.mp4",
         permanent: false,
       },
     ];
