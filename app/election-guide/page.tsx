@@ -15,7 +15,6 @@ import {
   IconCheck,
   IconPlayerPlay,
   IconHelpCircle,
-  IconSparkles,
 } from "@tabler/icons-react";
 
 const VIDEO_URL = "https://res.cloudinary.com/tsgtyztc/video/upload/v1791387936/election-guide.mp4";
@@ -80,18 +79,6 @@ export default function ElectionGuidePage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-12 max-w-7xl">
           {/* Header Hero */}
           <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14 lg:mb-16">
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 rounded-full bg-blue-50 border border-blue-100/80 px-3.5 py-1.5 sm:px-4 mb-4 sm:mb-6 shadow-xs"
-            >
-              <IconSparkles size={14} className="text-blue-600 sm:w-4 sm:h-4" />
-              <span className="text-[11px] sm:text-xs font-bold tracking-wider uppercase text-blue-700">
-                Official Voter Walkthrough
-              </span>
-            </motion.div>
-
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
