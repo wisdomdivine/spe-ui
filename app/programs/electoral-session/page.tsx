@@ -178,14 +178,23 @@ export default function ElectoralSessionPage() {
               Your vote is confidential. No one can see who you voted for.
             </motion.p>
 
-            {/* Trust badge */}
+            {/* Trust badge & Guide link */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.35 }}
-              className="mt-6 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2.5"
+              className="mt-6 flex items-center gap-3 flex-wrap"
             >
-              <span className="text-sm font-semibold text-emerald-700">Anonymous &amp; Secure Voting</span>
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2.5">
+                <span className="text-sm font-semibold text-emerald-700">Anonymous &amp; Secure Voting</span>
+              </div>
+              <Link
+                href="/election-guide"
+                className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50/80 hover:bg-blue-100 px-5 py-2.5 text-sm font-semibold text-blue-700 transition-colors shadow-xs"
+              >
+                <span>Watch Voting Guide</span>
+                <IconChevronRight size={16} />
+              </Link>
             </motion.div>
           </div>
 

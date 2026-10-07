@@ -87,7 +87,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/election-guide.mp4",
-        destination: "https://res.cloudinary.com/tsgtyztc/video/upload/v1791387936/election-guide.mp4",
+        destination: "/election-guide",
         permanent: false,
       },
       {
