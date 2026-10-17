@@ -87,7 +87,7 @@ export default function ElectionGuidePage() {
             >
               How to Vote in the{" "}
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent">
-                Electoral Session
+                Guest Electoral Session
               </span>
             </motion.h1>
 
@@ -205,7 +205,7 @@ export default function ElectionGuidePage() {
                 {/* Primary CTA Buttons */}
                 <div className="pt-1 sm:pt-2 flex flex-col sm:flex-row gap-2.5 sm:gap-3 w-full">
                   <Link
-                    href="/programs/electoral-session"
+                    href="/programs/guest-electoral-session"
                     className="w-full sm:flex-1 inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm px-5 sm:px-6 py-3.5 rounded-xl sm:rounded-2xl shadow-lg shadow-blue-200 transition-all hover:shadow-xl active:scale-98 text-center"
                   >
                     <span>Enter Voting Booth</span>

@@ -193,11 +193,20 @@ export default function GuestElectoralSessionPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.35 }}
-              className="mt-6 inline-flex items-center gap-2 rounded-full bg-gray-100 px-3.5 py-1.5"
+              className="mt-6 flex items-center gap-3 flex-wrap"
             >
-              <span className="text-xs font-medium text-gray-600">
-                {branding.portal_badge}
-              </span>
+              <div className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3.5 py-1.5">
+                <span className="text-xs font-medium text-gray-600">
+                  {branding.portal_badge}
+                </span>
+              </div>
+              <Link
+                href="/election-guide"
+                className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50/80 hover:bg-blue-100 px-4 py-1.5 text-xs font-semibold text-blue-700 transition-colors shadow-xs"
+              >
+                <span>Watch Voting Guide</span>
+                <IconChevronRight size={14} />
+              </Link>
             </motion.div>
           </div>
 
