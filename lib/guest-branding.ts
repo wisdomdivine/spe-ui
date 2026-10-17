@@ -13,6 +13,11 @@ export interface GuestBranding {
   auth_badge: string;
   faculty_name: string;
   hide_completed_elections?: boolean;
+  pdf_header_title?: string;
+  pdf_commission_title?: string;
+  pdf_institution_title?: string;
+  pdf_primary_color?: string;
+  pdf_watermark_url?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -30,6 +35,11 @@ export const DEFAULT_GUEST_BRANDING: GuestBranding = {
   auth_badge: "Guest Voter Verification",
   faculty_name: "Guest Session",
   hide_completed_elections: false,
+  pdf_header_title: "",
+  pdf_commission_title: "INDEPENDENT ELECTORAL COMMISSION",
+  pdf_institution_title: "UNIVERSITY OF IBADAN",
+  pdf_primary_color: "#B40F69",
+  pdf_watermark_url: "",
 };
 
 export async function fetchGuestBrandingServer(): Promise<GuestBranding> {
