@@ -264,17 +264,24 @@ export default function GuestElectionAuthPage() {
             className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-xl shadow-gray-100/50"
           >
             {/* Header stripe */}
-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 px-8 py-8 text-white">
+            <div 
+              className="px-8 py-8 text-white transition-all"
+              style={{
+                background: branding.pdf_primary_color
+                  ? `linear-gradient(135deg, ${branding.pdf_primary_color}, #0F172A)`
+                  : "linear-gradient(135deg, #2563EB, #1D4ED8)"
+              }}
+            >
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
                   <IconChecklist size={20} />
                 </div>
-                <span className="text-xs font-bold tracking-[0.15em] uppercase text-blue-200">
+                <span className="text-xs font-bold tracking-[0.15em] uppercase text-white/90">
                   {branding.auth_badge}
                 </span>
               </div>
               <h1 className="text-xl font-bold">{electionTitle || "Loading..."}</h1>
-              <p className="mt-1.5 text-sm font-medium text-blue-200">Verify your identity to access the voting booth.</p>
+              <p className="mt-1.5 text-sm font-medium text-white/80">Verify your identity to access the voting booth.</p>
             </div>
 
             {/* Body */}
