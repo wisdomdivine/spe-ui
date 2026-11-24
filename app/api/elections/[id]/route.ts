@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { computeElectionStatus } from "@/lib/election-status";
+import { isVoterEligibleForPosition } from "@/lib/position-eligibility";
 
-// Revalidate every 30 seconds at the CDN / Edge layer
-export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+    const voterId = req.nextUrl.searchParams.get("voter_id")?.trim() || null;
     const supabase = getSupabaseServer();
 
     // Fetch election
@@ -26,11 +27,11 @@ export async function GET(
 
     const liveStatus = computeElectionStatus(election);
 
-    // Fetch positions with candidates, and voter counts in parallel (head: true to avoid dumping rows)
-    const [positionsRes, candidatesRes, votersRes, votedRes] = await Promise.all([
+    // Fetch positions with candidates, voter counts, and optional voter profile in parallel
+    const [positionsRes, candidatesRes, votersRes, votedRes, voterProfileRes] = await Promise.all([
       supabase
         .from("election_positions")
-        .select("id, title, description, sort_order, allow_multiple, min_selections, max_selections")
+        .select("id, title, description, sort_order, position_type, allow_multiple, min_selections, max_selections, eligible_levels, eligible_departments, eligible_floors")
         .eq("election_id", id)
         .order("sort_order"),
       supabase
@@ -46,6 +47,13 @@ export async function GET(
         .select("id", { count: "exact", head: true })
         .eq("election_id", id)
         .eq("has_voted", true),
+      voterId
+        ? supabase
+            .from("voters")
+            .select("id, level, department, floor")
+            .eq("id", voterId)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
     ]);
 
     // Group candidates by position
@@ -71,13 +79,21 @@ export async function GET(
       });
     });
 
-    const positions = (positionsRes.data || []).map((p) => ({
+    const allPositions = (positionsRes.data || []).map((p) => ({
       ...p,
+      position_type: p.position_type || "executive",
       allow_multiple: Boolean(p.allow_multiple),
       min_selections: p.min_selections ?? 1,
       max_selections: p.max_selections ?? 1,
+      eligible_levels: Array.isArray(p.eligible_levels) ? p.eligible_levels : [],
+      eligible_departments: Array.isArray(p.eligible_departments) ? p.eligible_departments : [],
+      eligible_floors: Array.isArray(p.eligible_floors) ? p.eligible_floors : [],
       candidates: candidatesByPosition[p.id] || [],
     }));
+
+    const positions = voterId
+      ? allPositions.filter((p) => isVoterEligibleForPosition(voterProfileRes.data, p))
+      : allPositions;
 
     return NextResponse.json(
       {
@@ -86,17 +102,21 @@ export async function GET(
         description: election.description,
         status: liveStatus,
         is_open: election.is_open ?? false,
+        election_type: election.election_type || "executive",
         election_date: election.election_date,
         start_time: election.start_time,
         end_time: election.end_time,
         voter_auth_type: election.voter_auth_type || "matric",
         positions,
+        total_positions_count: allPositions.length,
         voters_count: votersRes.count || 0,
         voted_count: votedRes.count || 0,
       },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
+          "Cache-Control": voterId
+            ? "no-store, no-cache, must-revalidate"
+            : "public, s-maxage=30, stale-while-revalidate=120",
         },
       }
     );

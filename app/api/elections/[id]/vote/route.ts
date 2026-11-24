@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { computeElectionStatus } from "@/lib/election-status";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { isVoterEligibleForPosition } from "@/lib/position-eligibility";
 
 export const dynamic = "force-dynamic";
 
@@ -45,11 +46,16 @@ export async function POST(
 
     const supabase = getSupabaseServer();
 
-    // Fetch positions & candidates for server-side validation of multi-select min/max rules
-    const [positionsRes, candidatesRes] = await Promise.all([
+    // Fetch voter profile, positions & candidates for server-side eligibility & multi-select validation
+    const [voterRes, positionsRes, candidatesRes] = await Promise.all([
+      supabase
+        .from("voters")
+        .select("id, level, department, floor")
+        .eq("id", voter_id)
+        .maybeSingle(),
       supabase
         .from("election_positions")
-        .select("id, title, allow_multiple, min_selections, max_selections")
+        .select("id, title, allow_multiple, min_selections, max_selections, eligible_levels, eligible_departments, eligible_floors")
         .eq("election_id", electionId),
       supabase
         .from("election_candidates")
@@ -57,13 +63,21 @@ export async function POST(
         .eq("election_id", electionId),
     ]);
 
-    if (positionsRes.error || candidatesRes.error) {
+    if (voterRes.error || positionsRes.error || candidatesRes.error) {
       return NextResponse.json(
         { error: "Failed to verify election configuration. Please try again." },
         { status: 500 }
       );
     }
 
+    if (!voterRes.data) {
+      return NextResponse.json(
+        { error: "Voter record not found." },
+        { status: 403 }
+      );
+    }
+
+    const voterProfile = voterRes.data;
     const positions = positionsRes.data || [];
     const positionIds = new Set(positions.map((p) => p.id));
     const candidatesByPos = new Map<string, Set<string>>();
@@ -81,6 +95,7 @@ export async function POST(
 
     // Validate & flatten selections into votePayload rows
     const votePayload: Array<{ position_id: string; candidate_id: string | null }> = [];
+    let eligiblePositionCount = 0;
     for (const pos of positions) {
       const raw = votes[pos.id];
       const selectedList = Array.isArray(raw)
@@ -88,6 +103,19 @@ export async function POST(
         : typeof raw === "string" && raw.trim().length > 0
           ? [raw.trim()]
           : [];
+
+      const eligible = isVoterEligibleForPosition(voterProfile, pos);
+      if (!eligible) {
+        if (selectedList.length > 0) {
+          return NextResponse.json(
+            { error: `You are not eligible to vote for ${pos.title}.` },
+            { status: 403 }
+          );
+        }
+        continue;
+      }
+
+      eligiblePositionCount += 1;
 
       const hasVoid = selectedList.includes(NONE_OF_ABOVE_TOKEN);
       if (hasVoid) {
@@ -149,6 +177,13 @@ export async function POST(
       for (const cid of selectedList) {
         votePayload.push({ position_id: pos.id, candidate_id: cid });
       }
+    }
+
+    if (positions.length > 0 && eligiblePositionCount === 0) {
+      return NextResponse.json(
+        { error: "You are not eligible to vote for any positions in this election." },
+        { status: 403 }
+      );
     }
 
     // ── Exclusive Atomic RPC Submission (1 roundtrip + PostgreSQL FOR UPDATE row lock) ──

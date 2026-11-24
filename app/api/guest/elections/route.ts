@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { computeElectionStatus } from "@/lib/election-status";
+import { hasPositionRestrictions } from "@/lib/position-eligibility";
 
 // Revalidate every 30 seconds at the CDN / Edge layer
 export const revalidate = 30;
@@ -34,11 +35,19 @@ export async function GET() {
         let votedCount = 0;
         const { data: posList } = await supabase
           .from("guest_election_positions")
-          .select("id, allow_multiple")
+          .select("id, allow_multiple, eligible_levels, eligible_departments, eligible_floors")
           .eq("election_id", e.id)
           .order("sort_order");
 
-        const singleSelectPos = (posList || []).find((p: { id: string; allow_multiple?: boolean }) => !p.allow_multiple);
+        const singleSelectPos = (posList || []).find(
+          (p: {
+            id: string;
+            allow_multiple?: boolean;
+            eligible_levels?: string[] | null;
+            eligible_departments?: string[] | null;
+            eligible_floors?: string[] | null;
+          }) => !p.allow_multiple && !hasPositionRestrictions(p)
+        );
 
         if (singleSelectPos?.id) {
           const { count } = await supabase

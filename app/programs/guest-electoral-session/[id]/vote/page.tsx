@@ -7,6 +7,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/Header";
 import VotingCrowd from "@/components/elections/VotingCrowd";
+import { formatConstituencyTags } from "@/lib/position-eligibility";
 import {
   IconArrowLeft,
   IconArrowRight,
@@ -36,9 +37,13 @@ interface Position {
   title: string;
   description: string | null;
   sort_order: number;
+  position_type?: "executive" | "legislative";
   allow_multiple?: boolean;
   min_selections?: number;
   max_selections?: number;
+  eligible_levels?: string[];
+  eligible_departments?: string[];
+  eligible_floors?: string[];
 }
 
 function getPositionSelectionBounds(
@@ -71,6 +76,7 @@ interface ElectionData {
   description: string | null;
   status: string;
   is_open: boolean;
+  election_type?: "executive" | "legislative" | "both";
   election_date: string | null;
   start_time: string | null;
   end_time: string | null;
@@ -102,18 +108,31 @@ export default function GuestVotePage() {
   const voterStorageKey = `guest_voter_${electionId}`;
   const ballotStorageKey = `guest_vote_progress_${electionId}`;
 
-  const fetchElection = async () => {
+  const fetchElection = async (activeVoterId: string) => {
     setPageLoading(true);
     try {
-      const r = await fetch(`/api/guest/elections/${electionId}`);
+      const r = await fetch(
+        `/api/guest/elections/${electionId}?voter_id=${encodeURIComponent(activeVoterId)}`,
+        { cache: "no-store" }
+      );
       const data = await r.json();
       if (data.error) {
         setPageError(data.error);
         return;
       }
+      const nextPositions: Position[] = data.positions || [];
+      if (nextPositions.length === 0) {
+        setPageError(
+          (data.total_positions_count ?? 0) > 0
+            ? "No positions in this election match your voter constituency (level, department, or floor). Please contact the electoral committee if you think this is an error."
+            : "No positions found for this election."
+        );
+        return;
+      }
       setElection(data.election);
-      setPositions(data.positions || []);
+      setPositions(nextPositions);
       setCandidates(data.candidates || []);
+      setCurrentPosition((prev) => Math.min(prev, Math.max(0, nextPositions.length - 1)));
     } catch {
       setPageError("Failed to load guest election data.");
     } finally {
@@ -127,9 +146,15 @@ export default function GuestVotePage() {
       router.push(`/programs/guest-electoral-session/${electionId}/auth`);
       return;
     }
+    let activeVoterId: string;
     try {
       const parsed = JSON.parse(stored);
-      setVoterId(parsed.voter_id);
+      activeVoterId = parsed.voter_id;
+      if (!activeVoterId) {
+        router.push(`/programs/guest-electoral-session/${electionId}/auth`);
+        return;
+      }
+      setVoterId(activeVoterId);
       setVoterName(parsed.voter_name);
     } catch {
       router.push(`/programs/guest-electoral-session/${electionId}/auth`);
@@ -141,11 +166,12 @@ export default function GuestVotePage() {
       try {
         const progress = JSON.parse(progressRaw);
         if (progress.selections) setSelections(normalizeStoredSelections(progress.selections));
-        if (typeof progress.currentPosition === "number") setCurrentPosition(progress.currentPosition);
+        if (typeof progress.currentPosition === "number") setCurrentPosition(Math.max(0, progress.currentPosition));
       } catch {}
     }
 
-    fetchElection();
+    fetchElection(activeVoterId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [electionId]);
 
   // Persist voting progress
@@ -236,12 +262,17 @@ export default function GuestVotePage() {
     setSubmitError("");
 
     try {
+      const eligibleVotes: Record<string, string[]> = {};
+      for (const p of positions) {
+        if (selections[p.id]) eligibleVotes[p.id] = selections[p.id];
+      }
+
       const res = await fetch(`/api/guest/elections/${electionId}/vote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           voter_id: voterId,
-          votes: selections,
+          votes: eligibleVotes,
         }),
       });
 
@@ -515,7 +546,26 @@ export default function GuestVotePage() {
                   >
                     {/* Position header */}
                     <div className="mb-6">
-                      <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{activePosition?.title}</h1>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{activePosition?.title}</h1>
+                        {election.election_type === "both" && activePosition?.position_type === "legislative" && (
+                          <span className="rounded-full bg-teal-50 border border-teal-200 px-2.5 py-0.5 text-[11px] font-bold text-teal-700">
+                            Legislative
+                          </span>
+                        )}
+                      </div>
+                      {activePosition && formatConstituencyTags(activePosition).length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {formatConstituencyTags(activePosition).map((tag) => (
+                            <span
+                              key={tag}
+                              className="inline-flex items-center rounded-full bg-teal-50 border border-teal-200/80 px-2.5 py-0.5 text-[11px] font-semibold text-teal-700"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                       {activePosition?.description && (
                         <p className="mt-2 text-sm font-medium text-gray-500">{activePosition.description}</p>
                       )}

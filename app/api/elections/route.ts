@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseServer } from "@/lib/supabase-server";
 import { computeElectionStatus } from "@/lib/election-status";
+import { hasPositionRestrictions } from "@/lib/position-eligibility";
 
 // Revalidate every 30 seconds at the CDN / Edge layer
 export const revalidate = 30;
@@ -110,12 +111,20 @@ async function ledgerBallotCountForElection(
 ): Promise<number> {
   const { data: posRows, error: posErr } = await supabase
     .from("election_positions")
-    .select("id, allow_multiple")
+    .select("id, allow_multiple, eligible_levels, eligible_departments, eligible_floors")
     .eq("election_id", electionId);
   if (posErr) throw posErr;
   if (!posRows?.length) return 0;
 
-  const singleSelectPositions = posRows.filter((p: { id: string; allow_multiple?: boolean }) => !p.allow_multiple);
+  const singleSelectPositions = posRows.filter(
+    (p: {
+      id: string;
+      allow_multiple?: boolean;
+      eligible_levels?: string[] | null;
+      eligible_departments?: string[] | null;
+      eligible_floors?: string[] | null;
+    }) => !p.allow_multiple && !hasPositionRestrictions(p)
+  );
   if (singleSelectPositions.length === 0) {
     const { count, error } = await supabase
       .from("election_voter_assignments")
