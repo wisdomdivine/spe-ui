@@ -110,12 +110,24 @@ async function ledgerBallotCountForElection(
 ): Promise<number> {
   const { data: posRows, error: posErr } = await supabase
     .from("election_positions")
-    .select("id")
+    .select("id, allow_multiple")
     .eq("election_id", electionId);
   if (posErr) throw posErr;
   if (!posRows?.length) return 0;
+
+  const singleSelectPositions = posRows.filter((p: { id: string; allow_multiple?: boolean }) => !p.allow_multiple);
+  if (singleSelectPositions.length === 0) {
+    const { count, error } = await supabase
+      .from("election_voter_assignments")
+      .select("*", { count: "exact", head: true })
+      .eq("election_id", electionId)
+      .eq("has_voted", true);
+    if (error) throw error;
+    return count ?? 0;
+  }
+
   const counts = await Promise.all(
-    posRows.map(async (p: { id: string }) => {
+    singleSelectPositions.map(async (p: { id: string }) => {
       const { count, error } = await supabase
         .from("election_votes")
         .select("*", { count: "exact", head: true })

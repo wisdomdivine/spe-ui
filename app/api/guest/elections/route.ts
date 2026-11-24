@@ -32,20 +32,20 @@ export async function GET() {
         ]);
 
         let votedCount = 0;
-        const { data: firstPos } = await supabase
+        const { data: posList } = await supabase
           .from("guest_election_positions")
-          .select("id")
+          .select("id, allow_multiple")
           .eq("election_id", e.id)
-          .order("sort_order")
-          .limit(1)
-          .maybeSingle();
+          .order("sort_order");
 
-        if (firstPos?.id) {
+        const singleSelectPos = (posList || []).find((p: { id: string; allow_multiple?: boolean }) => !p.allow_multiple);
+
+        if (singleSelectPos?.id) {
           const { count } = await supabase
             .from("guest_election_ballots")
             .select("id", { count: "exact", head: true })
             .eq("election_id", e.id)
-            .eq("position_id", firstPos.id);
+            .eq("position_id", singleSelectPos.id);
           votedCount = count ?? 0;
         } else {
           const { count } = await supabase

@@ -36,6 +36,33 @@ interface Position {
   title: string;
   description: string | null;
   sort_order: number;
+  allow_multiple?: boolean;
+  min_selections?: number;
+  max_selections?: number;
+}
+
+function getPositionSelectionBounds(
+  pos: { allow_multiple?: boolean; min_selections?: number; max_selections?: number },
+  candidateCount: number
+) {
+  if (!pos.allow_multiple) return { allowMultiple: false, min: 1, max: 1 };
+  const rawMax = Math.max(1, pos.max_selections ?? 2);
+  const max = candidateCount > 0 ? Math.min(rawMax, candidateCount) : rawMax;
+  const min = Math.min(Math.max(0, pos.min_selections ?? 1), max);
+  return { allowMultiple: true, min, max };
+}
+
+function normalizeStoredSelections(raw: unknown): Record<string, string[]> {
+  if (!raw || typeof raw !== "object") return {};
+  const result: Record<string, string[]> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (Array.isArray(v)) {
+      result[k] = v.filter((x): x is string => typeof x === "string" && x.length > 0);
+    } else if (typeof v === "string" && v.length > 0) {
+      result[k] = [v];
+    }
+  }
+  return result;
 }
 
 interface ElectionData {
@@ -65,7 +92,7 @@ export default function GuestVotePage() {
   const [voterName, setVoterName] = useState<string | null>(null);
 
   const [currentPosition, setCurrentPosition] = useState(0);
-  const [selections, setSelections] = useState<Record<string, string>>({});
+  const [selections, setSelections] = useState<Record<string, string[]>>({});
   const [showReview, setShowReview] = useState(false);
   const [expandedManifesto, setExpandedManifesto] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -113,7 +140,7 @@ export default function GuestVotePage() {
     if (progressRaw) {
       try {
         const progress = JSON.parse(progressRaw);
-        if (progress.selections) setSelections(progress.selections);
+        if (progress.selections) setSelections(normalizeStoredSelections(progress.selections));
         if (typeof progress.currentPosition === "number") setCurrentPosition(progress.currentPosition);
       } catch {}
     }
@@ -140,21 +167,56 @@ export default function GuestVotePage() {
     return candidates.filter((c) => c.position_id === activePosition.id);
   }, [activePosition, candidates]);
 
-  const allPositionsVoted = positions.length > 0 && positions.every((p) => !!selections[p.id]);
+  const activeSelectedIds = activePosition ? (selections[activePosition.id] || []) : [];
+  const activeBounds = activePosition
+    ? getPositionSelectionBounds(activePosition, activeCandidates.length)
+    : { allowMultiple: false, min: 1, max: 1 };
+  const isActiveVoidSelected = activeSelectedIds.includes(NONE_OF_ABOVE_TOKEN);
+  const activeSelectedCount = isActiveVoidSelected ? 0 : activeSelectedIds.length;
+
+  const isPositionValid = (pos: Position) => {
+    const arr = selections[pos.id] || [];
+    if (arr.includes(NONE_OF_ABOVE_TOKEN)) return arr.length === 1;
+    const posCandCount = candidates.filter((c) => c.position_id === pos.id).length;
+    const b = getPositionSelectionBounds(pos, posCandCount);
+    if (!b.allowMultiple) return arr.length === 1;
+    return arr.length >= b.min && arr.length <= b.max;
+  };
+
+  const isActiveValid = activePosition ? isPositionValid(activePosition) : false;
+  const completedCount = positions.filter((p) => isPositionValid(p)).length;
+  const allPositionsVoted = positions.length > 0 && completedCount === positions.length;
 
   const handleSelectCandidate = (candidateId: string) => {
     if (!activePosition) return;
-    setSelections((prev) => ({
-      ...prev,
-      [activePosition.id]: candidateId,
-    }));
+    const bounds = getPositionSelectionBounds(activePosition, activeCandidates.length);
+    setSelections((prev) => {
+      const curr = prev[activePosition.id] || [];
+      if (candidateId === NONE_OF_ABOVE_TOKEN) {
+        const alreadyVoid = curr.includes(NONE_OF_ABOVE_TOKEN);
+        return { ...prev, [activePosition.id]: alreadyVoid ? [] : [NONE_OF_ABOVE_TOKEN] };
+      }
+      if (!bounds.allowMultiple) {
+        const already = curr.length === 1 && curr[0] === candidateId;
+        return { ...prev, [activePosition.id]: already ? [] : [candidateId] };
+      }
+      const withoutVoid = curr.filter((id) => id !== NONE_OF_ABOVE_TOKEN);
+      if (withoutVoid.includes(candidateId)) {
+        return { ...prev, [activePosition.id]: withoutVoid.filter((id) => id !== candidateId) };
+      }
+      if (withoutVoid.length >= bounds.max) {
+        return prev;
+      }
+      return { ...prev, [activePosition.id]: [...withoutVoid, candidateId] };
+    });
   };
 
   const handleNext = () => {
+    if (!isActiveValid) return;
     setExpandedManifesto(null);
     if (currentPosition < positions.length - 1) {
       setCurrentPosition((prev) => prev + 1);
-    } else {
+    } else if (allPositionsVoted) {
       setShowReview(true);
     }
   };
@@ -288,7 +350,7 @@ export default function GuestVotePage() {
                 Position {currentPosition + 1} of {positions.length}
               </span>
               <span className="text-xs font-bold text-gray-400">
-                {Object.values(selections).filter(Boolean).length}/{positions.length} selected
+                {completedCount}/{positions.length} completed
               </span>
             </div>
             <div className="flex gap-1.5">
@@ -299,7 +361,7 @@ export default function GuestVotePage() {
                   className={`h-2 flex-1 rounded-full transition-all duration-300 ${
                     i === currentPosition
                       ? "bg-blue-600"
-                      : selections[p.id]
+                      : isPositionValid(p)
                         ? "bg-emerald-400"
                         : "bg-gray-200"
                   }`}
@@ -342,30 +404,73 @@ export default function GuestVotePage() {
 
                     <div className="space-y-4 mb-8">
                       {positions.map((pos) => {
-                        const selectedId = selections[pos.id];
-                        const cand = candidates.find((c) => c.id === selectedId);
-                        const isNone = selectedId === NONE_OF_ABOVE_TOKEN;
+                        const chosenIds = selections[pos.id] || [];
+                        const isNone = chosenIds.includes(NONE_OF_ABOVE_TOKEN);
+                        const chosenCands = isNone
+                          ? []
+                          : chosenIds
+                              .map((cid) => candidates.find((c) => c.id === cid))
+                              .filter((c): c is Candidate => Boolean(c));
+                        const valid = isPositionValid(pos);
 
                         return (
                           <div
                             key={pos.id}
-                            className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 bg-gray-50/50"
+                            className="flex items-start justify-between gap-4 p-4 rounded-2xl border border-gray-100 bg-gray-50/50"
                           >
-                            <div>
-                              <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                                {pos.title}
-                              </p>
-                              <p className="text-sm font-bold text-gray-900 mt-0.5">
-                                {isNone ? "Void" : cand ? cand.name : "Not selected"}
-                              </p>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                                  {pos.title}
+                                </p>
+                                {pos.allow_multiple && !isNone && chosenCands.length > 0 && (
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">
+                                    {chosenCands.length} selected
+                                  </span>
+                                )}
+                              </div>
+                              {isNone ? (
+                                <p className="text-sm font-bold text-amber-700 mt-0.5">Void</p>
+                              ) : chosenCands.length === 0 ? (
+                                <p className="text-sm font-semibold text-gray-400 mt-0.5">
+                                  {valid ? "No selection (Optional)" : "Not selected"}
+                                </p>
+                              ) : chosenCands.length === 1 ? (
+                                <p className="text-sm font-bold text-gray-900 mt-0.5">{chosenCands[0].name}</p>
+                              ) : (
+                                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                                  {chosenCands.map((c) => (
+                                    <span
+                                      key={c.id}
+                                      className="inline-flex items-center gap-1 rounded-lg bg-white border border-blue-100 px-2.5 py-1 text-xs font-bold text-gray-900"
+                                    >
+                                      <IconCircleCheck size={13} className="text-blue-600 shrink-0" />
+                                      {c.name}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                            <span
-                              className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                                selectedId ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
-                              }`}
-                            >
-                              {selectedId ? "Ready" : "Pending"}
-                            </span>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const idx = positions.findIndex((p) => p.id === pos.id);
+                                  setCurrentPosition(idx);
+                                  setShowReview(false);
+                                }}
+                                className="text-xs font-bold text-blue-600 hover:text-blue-700 cursor-pointer"
+                              >
+                                Change
+                              </button>
+                              <span
+                                className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                                  valid ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
+                                }`}
+                              >
+                                {valid ? "Ready" : "Pending"}
+                              </span>
+                            </div>
                           </div>
                         );
                       })}
@@ -414,13 +519,46 @@ export default function GuestVotePage() {
                       {activePosition?.description && (
                         <p className="mt-2 text-sm font-medium text-gray-500">{activePosition.description}</p>
                       )}
-                      <p className="mt-3 text-xs font-semibold text-gray-400">Select one candidate:</p>
+                      <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
+                        <p className="text-xs font-semibold text-gray-500">
+                          {!activeBounds.allowMultiple
+                            ? "Select one candidate:"
+                            : activeBounds.min === activeBounds.max
+                              ? `Select exactly ${activeBounds.min} candidate${activeBounds.min !== 1 ? "s" : ""}:`
+                              : activeBounds.min === 0
+                                ? `Select up to ${activeBounds.max} candidate${activeBounds.max !== 1 ? "s" : ""} (optional):`
+                                : `Select between ${activeBounds.min} and ${activeBounds.max} candidates:`}
+                        </p>
+                        {activeBounds.allowMultiple && (
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
+                              isActiveVoidSelected
+                                ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                : isActiveValid
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  : activeSelectedCount > 0
+                                    ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                    : "bg-blue-50 text-blue-700 border border-blue-200"
+                            }`}
+                          >
+                            {isActiveVoidSelected
+                              ? "Void selected"
+                              : `${activeSelectedCount} / ${activeBounds.max} selected`}
+                          </span>
+                        )}
+                      </div>
+                      {activeBounds.allowMultiple && !isActiveVoidSelected && activeSelectedCount > 0 && activeSelectedCount < activeBounds.min && (
+                        <p className="mt-1.5 text-xs font-semibold text-amber-600">
+                          Select at least {activeBounds.min - activeSelectedCount} more candidate{activeBounds.min - activeSelectedCount !== 1 ? "s" : ""} to continue.
+                        </p>
+                      )}
                     </div>
 
                     {/* Candidates */}
                     <div className="space-y-3">
                       {activeCandidates.map((cand, ci) => {
-                        const isSelected = selections[activePosition.id] === cand.id;
+                        const isSelected = activeSelectedIds.includes(cand.id);
+                        const isAtMax = activeBounds.allowMultiple && !isSelected && !isActiveVoidSelected && activeSelectedCount >= activeBounds.max;
                         const isExpanded = expandedManifesto === cand.id;
                         const candBio = cand.manifesto || cand.bio;
 
@@ -433,14 +571,17 @@ export default function GuestVotePage() {
                             className={`overflow-hidden rounded-2xl border-2 transition-all duration-200 ${
                               isSelected
                                 ? "border-blue-500 bg-blue-50/50 shadow-lg shadow-blue-100/50"
-                                : "border-gray-100 bg-white hover:border-gray-200 hover:shadow-md"
+                                : isAtMax
+                                  ? "border-gray-100 bg-white/70 opacity-60"
+                                  : "border-gray-100 bg-white hover:border-gray-200 hover:shadow-md"
                             }`}
                           >
                             {/* Main row */}
                             <button
                               type="button"
                               onClick={() => handleSelectCandidate(cand.id)}
-                              className="flex w-full items-center gap-4 p-5 text-left cursor-pointer"
+                              disabled={isAtMax}
+                              className="flex w-full items-center gap-4 p-5 text-left cursor-pointer disabled:cursor-not-allowed"
                             >
                               {/* Avatar */}
                               <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-black transition-colors ${
@@ -467,8 +608,10 @@ export default function GuestVotePage() {
                                 {cand.matric_number && <p className="text-xs font-medium text-gray-400 mt-0.5">Matric: {cand.matric_number}</p>}
                               </div>
 
-                              {/* Check circle */}
-                              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
+                              {/* Check indicator */}
+                              <div className={`flex h-8 w-8 shrink-0 items-center justify-center ${
+                                activeBounds.allowMultiple ? "rounded-lg" : "rounded-full"
+                              } border-2 transition-all ${
                                 isSelected
                                   ? "border-blue-500 bg-blue-600"
                                   : "border-gray-200 bg-white"
@@ -516,7 +659,7 @@ export default function GuestVotePage() {
                         initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
                         className={`overflow-hidden rounded-2xl border-2 transition-all duration-200 ${
-                          selections[activePosition?.id] === NONE_OF_ABOVE_TOKEN
+                          isActiveVoidSelected
                             ? "border-amber-500 bg-amber-50/60 shadow-lg shadow-amber-100/60"
                             : "border-gray-100 bg-white hover:border-amber-200 hover:shadow-md"
                         }`}
@@ -527,24 +670,26 @@ export default function GuestVotePage() {
                           className="flex w-full items-center gap-4 p-5 text-left cursor-pointer"
                         >
                           <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-black transition-colors ${
-                            selections[activePosition?.id] === NONE_OF_ABOVE_TOKEN ? "bg-amber-500 text-white" : "bg-amber-100 text-amber-700"
+                            isActiveVoidSelected ? "bg-amber-500 text-white" : "bg-amber-100 text-amber-700"
                           }`}>
                             Ø
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className={`text-base font-bold ${selections[activePosition?.id] === NONE_OF_ABOVE_TOKEN ? "text-amber-700" : "text-gray-900"}`}>
+                            <p className={`text-base font-bold ${isActiveVoidSelected ? "text-amber-700" : "text-gray-900"}`}>
                               Void
                             </p>
                             <p className="text-xs font-medium text-gray-500 mt-0.5">
-                              Submit a blank preference for this position.
+                              {activeBounds.allowMultiple
+                                ? "Submit a blank preference for this position (clears selected candidates)."
+                                : "Submit a blank preference for this position."}
                             </p>
                           </div>
                           <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
-                            selections[activePosition?.id] === NONE_OF_ABOVE_TOKEN
+                            isActiveVoidSelected
                               ? "border-amber-500 bg-amber-500"
                               : "border-gray-200 bg-white"
                           }`}>
-                            {selections[activePosition?.id] === NONE_OF_ABOVE_TOKEN && <IconCircleCheck size={16} className="text-white" />}
+                            {isActiveVoidSelected && <IconCircleCheck size={16} className="text-white" />}
                           </div>
                         </button>
                       </motion.div>
@@ -564,7 +709,7 @@ export default function GuestVotePage() {
                       <button
                         type="button"
                         onClick={handleNext}
-                        disabled={!selections[activePosition?.id]}
+                        disabled={!isActiveValid}
                         className={`flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-bold transition-all shadow-lg disabled:opacity-40 disabled:shadow-none cursor-pointer ${
                           currentPosition === positions.length - 1 && allPositionsVoted
                             ? "bg-emerald-600 text-white shadow-emerald-200 hover:bg-emerald-700"

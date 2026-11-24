@@ -32,13 +32,20 @@ export async function GET(
       manifesto: c.manifesto || c.bio || null,
     }));
 
+    const positions = (positionsRes.data || []).map((p: any) => ({
+      ...p,
+      allow_multiple: Boolean(p.allow_multiple),
+      min_selections: p.min_selections ?? 1,
+      max_selections: p.max_selections ?? 1,
+    }));
+
     return NextResponse.json(
       {
         election: {
           ...election,
           status: liveStatus,
         },
-        positions: positionsRes.data || [],
+        positions,
         candidates,
       },
       {

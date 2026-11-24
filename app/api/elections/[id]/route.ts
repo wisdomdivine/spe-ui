@@ -30,7 +30,7 @@ export async function GET(
     const [positionsRes, candidatesRes, votersRes, votedRes] = await Promise.all([
       supabase
         .from("election_positions")
-        .select("id, title, description, sort_order")
+        .select("id, title, description, sort_order, allow_multiple, min_selections, max_selections")
         .eq("election_id", id)
         .order("sort_order"),
       supabase
@@ -73,6 +73,9 @@ export async function GET(
 
     const positions = (positionsRes.data || []).map((p) => ({
       ...p,
+      allow_multiple: Boolean(p.allow_multiple),
+      min_selections: p.min_selections ?? 1,
+      max_selections: p.max_selections ?? 1,
       candidates: candidatesByPosition[p.id] || [],
     }));
 
