@@ -111,7 +111,7 @@ async function ledgerBallotCountForElection(
 ): Promise<number> {
   const { data: posRows, error: posErr } = await supabase
     .from("election_positions")
-    .select("id, allow_multiple, eligible_levels, eligible_departments, eligible_floors")
+    .select("id, allow_multiple, eligible_levels, eligible_departments, eligible_constituencies")
     .eq("election_id", electionId);
   if (posErr) throw posErr;
   if (!posRows?.length) return 0;
@@ -122,7 +122,7 @@ async function ledgerBallotCountForElection(
       allow_multiple?: boolean;
       eligible_levels?: string[] | null;
       eligible_departments?: string[] | null;
-      eligible_floors?: string[] | null;
+      eligible_constituencies?: string[] | null;
     }) => !p.allow_multiple && !hasPositionRestrictions(p)
   );
   if (singleSelectPositions.length === 0) {

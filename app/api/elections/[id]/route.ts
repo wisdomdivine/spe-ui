@@ -31,7 +31,7 @@ export async function GET(
     const [positionsRes, candidatesRes, votersRes, votedRes, voterProfileRes] = await Promise.all([
       supabase
         .from("election_positions")
-        .select("id, title, description, sort_order, position_type, allow_multiple, min_selections, max_selections, eligible_levels, eligible_departments, eligible_floors")
+        .select("id, title, description, sort_order, position_type, allow_multiple, min_selections, max_selections, eligible_levels, eligible_departments, eligible_constituencies")
         .eq("election_id", id)
         .order("sort_order"),
       supabase
@@ -50,7 +50,7 @@ export async function GET(
       voterId
         ? supabase
             .from("voters")
-            .select("id, level, department, floor")
+            .select("id, level, department, constituency")
             .eq("id", voterId)
             .maybeSingle()
         : Promise.resolve({ data: null, error: null }),
@@ -87,7 +87,7 @@ export async function GET(
       max_selections: p.max_selections ?? 1,
       eligible_levels: Array.isArray(p.eligible_levels) ? p.eligible_levels : [],
       eligible_departments: Array.isArray(p.eligible_departments) ? p.eligible_departments : [],
-      eligible_floors: Array.isArray(p.eligible_floors) ? p.eligible_floors : [],
+      eligible_constituencies: Array.isArray(p.eligible_constituencies) ? p.eligible_constituencies : [],
       candidates: candidatesByPosition[p.id] || [],
     }));
 

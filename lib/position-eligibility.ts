@@ -1,13 +1,13 @@
 export interface VoterAttributes {
   level?: string | null;
   department?: string | null;
-  floor?: string | null;
+  constituency?: string | null;
 }
 
 export interface PositionEligibility {
   eligible_levels?: string[] | null;
   eligible_departments?: string[] | null;
-  eligible_floors?: string[] | null;
+  eligible_constituencies?: string[] | null;
 }
 
 function matchesList(value: string | null | undefined, allowed: string[] | null | undefined): boolean {
@@ -31,7 +31,7 @@ export function isVoterEligibleForPosition(
   return (
     matchesList(voter.level, position.eligible_levels) &&
     matchesList(voter.department, position.eligible_departments) &&
-    matchesList(voter.floor, position.eligible_floors)
+    matchesList(voter.constituency, position.eligible_constituencies)
   );
 }
 
@@ -39,7 +39,7 @@ export function hasPositionRestrictions(position: PositionEligibility): boolean 
   return Boolean(
     (position.eligible_levels && position.eligible_levels.length > 0) ||
       (position.eligible_departments && position.eligible_departments.length > 0) ||
-      (position.eligible_floors && position.eligible_floors.length > 0)
+      (position.eligible_constituencies && position.eligible_constituencies.length > 0)
   );
 }
 
@@ -51,8 +51,8 @@ export function formatConstituencyTags(position: PositionEligibility): string[] 
   if (position.eligible_departments && position.eligible_departments.length > 0) {
     tags.push(`Dept: ${position.eligible_departments.join(", ")}`);
   }
-  if (position.eligible_floors && position.eligible_floors.length > 0) {
-    tags.push(`Floor: ${position.eligible_floors.join(", ")}`);
+  if (position.eligible_constituencies && position.eligible_constituencies.length > 0) {
+    tags.push(`Constituency: ${position.eligible_constituencies.join(", ")}`);
   }
   return tags;
 }

@@ -35,7 +35,7 @@ export async function GET() {
         let votedCount = 0;
         const { data: posList } = await supabase
           .from("guest_election_positions")
-          .select("id, allow_multiple, eligible_levels, eligible_departments, eligible_floors")
+          .select("id, allow_multiple, eligible_levels, eligible_departments, eligible_constituencies")
           .eq("election_id", e.id)
           .order("sort_order");
 
@@ -45,7 +45,7 @@ export async function GET() {
             allow_multiple?: boolean;
             eligible_levels?: string[] | null;
             eligible_departments?: string[] | null;
-            eligible_floors?: string[] | null;
+            eligible_constituencies?: string[] | null;
           }) => !p.allow_multiple && !hasPositionRestrictions(p)
         );
 

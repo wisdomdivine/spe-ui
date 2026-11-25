@@ -44,7 +44,7 @@ interface Position {
   max_selections?: number;
   eligible_levels?: string[];
   eligible_departments?: string[];
-  eligible_floors?: string[];
+  eligible_constituencies?: string[];
   candidates: Candidate[];
 }
 
@@ -155,7 +155,7 @@ export default function VotePage() {
         } else if (!data.positions?.length) {
           setPageError(
             (data.total_positions_count ?? 0) > 0
-              ? "No positions in this election match your voter constituency (level, department, or floor). Please contact the electoral committee if you think this is an error."
+              ? "No positions in this election match your voter profile (level, department, or constituency). Please contact the electoral committee if you think this is an error."
               : "No positions found for this election."
           );
         } else {

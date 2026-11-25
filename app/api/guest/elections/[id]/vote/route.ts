@@ -50,12 +50,12 @@ export async function POST(
     const [voterRes, positionsRes, candidatesRes] = await Promise.all([
       supabase
         .from("guest_voters")
-        .select("id, level, department, floor")
+        .select("id, level, department, constituency")
         .eq("id", voter_id)
         .maybeSingle(),
       supabase
         .from("guest_election_positions")
-        .select("id, title, allow_multiple, min_selections, max_selections, eligible_levels, eligible_departments, eligible_floors")
+        .select("id, title, allow_multiple, min_selections, max_selections, eligible_levels, eligible_departments, eligible_constituencies")
         .eq("election_id", electionId),
       supabase
         .from("guest_election_candidates")
