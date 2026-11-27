@@ -18,7 +18,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const FROM_ADDRESS = `"SPE-UI" <${process.env.SMTP_USER || "info@speui.org"}>`;
+const SMTP_EMAIL = process.env.SMTP_USER || "info@speui.org";
+function formatFromAddress(senderName?: string | null): string {
+  const clean = (senderName || "SPE-UI").replace(/["\r\n<>]/g, "").trim() || "SPE-UI";
+  return `"${clean}" <${SMTP_EMAIL}>`;
+}
+const FROM_ADDRESS = formatFromAddress("SPE-UI");
 
 /**
  * Send an OTP verification email for election voting.
@@ -28,12 +33,25 @@ export async function sendOtpEmail({
   voterName,
   otp,
   electionTitle,
+  senderName,
+  footerText,
 }: {
   to: string;
   voterName: string;
   otp: string;
   electionTitle: string;
+  senderName?: string;
+  footerText?: string;
 }) {
+  const displaySender = (senderName || "SPE-UI").replace(/["\r\n<>]/g, "").trim() || "SPE-UI";
+  const fromAddress = formatFromAddress(displaySender);
+  const headingLabel = `${displaySender} Election`;
+  const footerLabel =
+    footerText?.trim() ||
+    (senderName
+      ? displaySender
+      : "Society of Petroleum Engineers, University of Ibadan Student Chapter");
+
   const html = `
 <!DOCTYPE html>
 <html>
@@ -48,7 +66,7 @@ export async function sendOtpEmail({
         <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;">
           <tr>
             <td style="padding:0 0 24px;">
-              <p style="margin:0; font-size:18px; font-weight:700; color:#111827;">SPE-UI Election</p>
+              <p style="margin:0; font-size:18px; font-weight:700; color:#111827;">${headingLabel}</p>
               <p style="margin:4px 0 0; font-size:13px; color:#6B7280;">${electionTitle}</p>
             </td>
           </tr>
@@ -85,7 +103,7 @@ export async function sendOtpEmail({
           <tr>
             <td style="border-top:1px solid #E5E7EB; padding:16px 0 0;">
               <p style="margin:0; font-size:12px; color:#9CA3AF;">
-                Society of Petroleum Engineers, University of Ibadan Student Chapter
+                ${footerLabel}
               </p>
             </td>
           </tr>
@@ -97,7 +115,7 @@ export async function sendOtpEmail({
 </html>`.trim();
 
   const text = [
-    `SPE-UI Election: ${electionTitle}`,
+    `${headingLabel}: ${electionTitle}`,
     ``,
     `Hi ${voterName},`,
     ``,
@@ -107,13 +125,13 @@ export async function sendOtpEmail({
     ``,
     `If you did not request this code, please ignore this email.`,
     ``,
-    `Society of Petroleum Engineers, University of Ibadan Student Chapter`,
+    footerLabel,
   ].join("\n");
 
   if (resendClient) {
     try {
       const { error } = await resendClient.emails.send({
-        from: FROM_ADDRESS,
+        from: fromAddress,
         to: [to],
         subject: `Your voting verification code: ${otp}`,
         text,
@@ -127,7 +145,7 @@ export async function sendOtpEmail({
   }
 
   await transporter.sendMail({
-    from: FROM_ADDRESS,
+    from: fromAddress,
     to,
     subject: `Your voting verification code: ${otp}`,
     text,

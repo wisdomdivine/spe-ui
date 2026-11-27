@@ -198,13 +198,26 @@ export async function POST(
       );
     }
 
-    // 7. Send OTP email
+    // 7. Send OTP email using guest email sender name (default: SEMS)
     try {
+      const { data: guestBranding } = await supabase
+        .from("guest_branding")
+        .select("email_sender_name, organization_name, organization_full_name")
+        .eq("id", "default")
+        .maybeSingle();
+      const senderName = guestBranding?.email_sender_name?.trim() || "SEMS";
+      const footerText =
+        guestBranding?.organization_full_name?.trim() ||
+        guestBranding?.organization_name?.trim() ||
+        senderName;
+
       await sendOtpEmail({
         to: voter.email,
         voterName: voter.name || "Guest Voter",
         otp: otpCode,
         electionTitle: election.title || "Guest Electoral Session",
+        senderName,
+        footerText,
       });
     } catch (emailErr) {
       console.error("SMTP send error for guest OTP:", emailErr);

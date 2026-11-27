@@ -12,6 +12,7 @@ export interface GuestBranding {
   portal_badge: string;
   auth_badge: string;
   faculty_name: string;
+  email_sender_name?: string;
   hide_completed_elections?: boolean;
   pdf_header_title?: string;
   pdf_commission_title?: string;
@@ -34,6 +35,7 @@ export const DEFAULT_GUEST_BRANDING: GuestBranding = {
   portal_badge: "Official Guest Electoral Portal",
   auth_badge: "Guest Voter Verification",
   faculty_name: "Guest Session",
+  email_sender_name: "SEMS",
   hide_completed_elections: false,
   pdf_header_title: "",
   pdf_commission_title: "INDEPENDENT ELECTORAL COMMISSION",
