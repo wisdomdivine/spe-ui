@@ -30,7 +30,7 @@ export async function POST(
     // 1. Check election exists, is open, and get auth method
     const { data: election, error: elErr } = await supabase
       .from("guest_elections")
-      .select("id, title, is_open, status, voter_auth_type")
+      .select("id, title, is_open, status, voter_auth_type, require_accreditation")
       .eq("id", electionId)
       .single();
 
@@ -108,7 +108,7 @@ export async function POST(
     // 3. Check voter assignment
     const { data: assignment, error: assignErr } = await supabase
       .from("guest_election_voter_assignments")
-      .select("id, has_voted")
+      .select("id, has_voted, is_accredited")
       .eq("election_id", electionId)
       .eq("voter_id", voter.id)
       .single();
@@ -116,6 +116,17 @@ export async function POST(
     if (assignErr || !assignment) {
       return NextResponse.json(
         { error: "You are not eligible to vote in this guest election." },
+        { status: 403 }
+      );
+    }
+
+    if (election.require_accreditation && !assignment.is_accredited) {
+      return NextResponse.json(
+        {
+          error:
+            "You have not completed accreditation for this election. Please open the accreditation link sent to your email before voting.",
+          requires_accreditation: true,
+        },
         { status: 403 }
       );
     }

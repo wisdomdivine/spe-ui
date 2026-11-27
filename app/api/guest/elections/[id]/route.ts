@@ -64,6 +64,7 @@ export async function GET(
         election: {
           ...election,
           election_type: election.election_type || "executive",
+          require_accreditation: Boolean(election.require_accreditation),
           status: liveStatus,
         },
         positions,

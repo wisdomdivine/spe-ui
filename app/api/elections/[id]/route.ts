@@ -103,6 +103,7 @@ export async function GET(
         status: liveStatus,
         is_open: election.is_open ?? false,
         election_type: election.election_type || "executive",
+        require_accreditation: Boolean(election.require_accreditation),
         election_date: election.election_date,
         start_time: election.start_time,
         end_time: election.end_time,

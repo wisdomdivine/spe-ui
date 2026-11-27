@@ -28,6 +28,26 @@ export async function POST(
 
     const supabase = getSupabaseServer();
 
+    // 0. Enforce accreditation if required for this election
+    const [{ data: election }, { data: assignment }] = await Promise.all([
+      supabase.from("elections").select("require_accreditation").eq("id", electionId).maybeSingle(),
+      supabase
+        .from("election_voter_assignments")
+        .select("is_accredited")
+        .eq("election_id", electionId)
+        .eq("voter_id", voter_id)
+        .maybeSingle(),
+    ]);
+    if (election?.require_accreditation && !assignment?.is_accredited) {
+      return NextResponse.json(
+        {
+          error:
+            "You have not completed accreditation for this election. Please open the accreditation link sent to your email before voting.",
+        },
+        { status: 403 }
+      );
+    }
+
     // 1. Find the OTP record
     const { data: otpRecord, error: otpErr } = await supabase
       .from("voter_otps")
