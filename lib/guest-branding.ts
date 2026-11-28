@@ -27,7 +27,7 @@ export const DEFAULT_GUEST_BRANDING: GuestBranding = {
   id: "default",
   organization_name: "Guest Electoral Session",
   organization_acronym: "Guest",
-  organization_full_name: "Guest Electoral Session · University of Ibadan",
+  organization_full_name: "Guest Electoral Session, University of Ibadan",
   logo_url: "/guest-logo.svg",
   cobranding_title: "SPE UI x Guest",
   hero_title: "Guest Voting,\nSecure & Direct.",

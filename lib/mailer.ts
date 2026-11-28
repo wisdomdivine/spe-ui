@@ -454,7 +454,7 @@ export async function sendAdminNotificationEmail({
       </tr>
       <tr style="border-bottom:1px solid #f3f4f6;">
         <td style="font-weight:bold; color:#6b7280; padding:12px 0;">WhatsApp Number</td>
-        <td style="color:#111827; padding:12px 0;">${whatsappNumber || "—"}</td>
+        <td style="color:#111827; padding:12px 0;">${whatsappNumber || "Not provided"}</td>
       </tr>
       <tr style="border-bottom:1px solid #f3f4f6;">
         <td style="font-weight:bold; color:#6b7280; padding:12px 0;">Access Code</td>
@@ -476,7 +476,7 @@ export async function sendAdminNotificationEmail({
     `Email Address: ${email}`,
     `Department: ${department}`,
     `Membership: ${membershipStatus}`,
-    `WhatsApp Number: ${whatsappNumber || "—"}`,
+    `WhatsApp Number: ${whatsappNumber || "Not provided"}`,
     `Access Code: ${accessCode}`,
     `Selected Days: ${selectedDays}`,
   ].join("\n");

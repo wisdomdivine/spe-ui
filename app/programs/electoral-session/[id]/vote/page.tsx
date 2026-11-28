@@ -89,12 +89,12 @@ interface ElectionData {
 }
 
 function formatTime12(time24: string | null | undefined) {
-  if (!time24 || typeof time24 !== "string") return "—";
+  if (!time24 || typeof time24 !== "string") return "";
   const parts = time24.split(":");
   const h = parts[0];
   const m = parts[1] ?? "00";
   const hour = parseInt(h, 10);
-  if (Number.isNaN(hour)) return "—";
+  if (Number.isNaN(hour)) return "";
   const ampm = hour >= 12 ? "PM" : "AM";
   const h12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
   return `${h12}:${m.padStart(2, "0")} ${ampm}`;
@@ -647,9 +647,15 @@ export default function VotePage() {
               <div className="mb-6">
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{position.title}</h1>
-                  {election.election_type === "both" && position.position_type === "legislative" && (
-                    <span className="rounded-full bg-teal-50 border border-teal-200 px-2.5 py-0.5 text-[11px] font-bold text-teal-700">
-                      Legislative
+                  {election.election_type === "both" && (
+                    <span
+                      className={`rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${
+                        position.position_type === "legislative"
+                          ? "bg-teal-50 border-teal-200 text-teal-700"
+                          : "bg-blue-50 border-blue-200 text-blue-700"
+                      }`}
+                    >
+                      {position.position_type === "legislative" ? "Legislative" : "Executive"}
                     </span>
                   )}
                 </div>
@@ -777,7 +783,7 @@ export default function VotePage() {
                             }}
                             className="text-[11px] font-bold text-blue-600 hover:text-blue-700 mb-2"
                           >
-                            {isExpanded ? "Hide bio ↑" : "View bio →"}
+                            {isExpanded ? "Hide bio" : "View bio"}
                           </button>
                           <AnimatePresence>
                             {isExpanded && (

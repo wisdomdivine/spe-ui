@@ -548,9 +548,15 @@ export default function GuestVotePage() {
                     <div className="mb-6">
                       <div className="flex flex-wrap items-center gap-2">
                         <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{activePosition?.title}</h1>
-                        {election.election_type === "both" && activePosition?.position_type === "legislative" && (
-                          <span className="rounded-full bg-teal-50 border border-teal-200 px-2.5 py-0.5 text-[11px] font-bold text-teal-700">
-                            Legislative
+                        {election.election_type === "both" && activePosition && (
+                          <span
+                            className={`rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${
+                              activePosition.position_type === "legislative"
+                                ? "bg-teal-50 border-teal-200 text-teal-700"
+                                : "bg-blue-50 border-blue-200 text-blue-700"
+                            }`}
+                          >
+                            {activePosition.position_type === "legislative" ? "Legislative" : "Executive"}
                           </span>
                         )}
                       </div>
@@ -681,7 +687,7 @@ export default function GuestVotePage() {
                                   }}
                                   className="text-[11px] font-bold text-blue-600 hover:text-blue-700 mb-2 cursor-pointer inline-flex items-center gap-1"
                                 >
-                                  {isExpanded ? "Hide manifesto ↑" : "View manifesto →"}
+                                  {isExpanded ? "Hide manifesto" : "View manifesto"}
                                 </button>
                                 <AnimatePresence>
                                   {isExpanded && (

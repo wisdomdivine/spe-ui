@@ -329,12 +329,12 @@ function GuestElectionCard({
         <span className="flex items-center gap-1.5 font-medium text-sm text-gray-500">
           <IconClock size={15} />
           {election.start_time && election.end_time
-            ? `${election.start_time.slice(0, 5)} - ${election.end_time.slice(0, 5)}`
+            ? `${election.start_time.slice(0, 5)} to ${election.end_time.slice(0, 5)}`
             : "Time TBA"}
         </span>
         <span className="flex items-center gap-1.5 font-medium text-sm text-gray-500">
           <IconUsers size={15} />
-          <span>{election.positions_count} positions · {election.candidates_count} candidates</span>
+          <span>{election.positions_count} positions, {election.candidates_count} candidates</span>
         </span>
       </div>
 

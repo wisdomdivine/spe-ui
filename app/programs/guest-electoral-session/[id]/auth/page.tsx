@@ -422,7 +422,7 @@ export default function GuestElectionAuthPage() {
                           onClick={() => { setStep("identify"); setOtp(["", "", "", "", "", ""]); setError(""); }}
                           className="hover:text-gray-600 transition-colors"
                         >
-                          ← Use different matric
+                          Use different matric
                         </button>
                         <button className="hover:text-blue-600 transition-colors" onClick={handleResendOtp} disabled={resendCooldown > 0 || loading}>
                           {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend code"}

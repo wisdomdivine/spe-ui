@@ -46,7 +46,7 @@ function GuestAccreditContent() {
 
   useEffect(() => {
     if (!electionId || !token) {
-      setResult({ success: false, error: "Invalid accreditation link — token is missing." });
+      setResult({ success: false, error: "Invalid accreditation link. Token is missing." });
       setLoading(false);
       return;
     }
@@ -124,7 +124,7 @@ function GuestAccreditContent() {
               <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2">
                 <IconShieldCheck size={15} className="text-emerald-600" />
                 <span className="text-xs font-semibold text-emerald-700">
-                  {result.is_open ? "Polls are open — you can vote now" : "You are cleared to vote once polls open"}
+                  {result.is_open ? "Polls are open. You can vote now" : "You are cleared to vote once polls open"}
                 </span>
               </div>
               <div className="pt-2">
